@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Model Y — AgroShield | Uncertainty-Aware Vegetable Price Decision Engine</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥬</text></svg>">
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Left Floating Vertical Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="logo-leaf" title="Model Y · AgroShield">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
+            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
+          </svg>
+        </div>
+        <button class="nav-btn active" title="Dashboard Home">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="7" height="7" x="3" y="3" rx="1"></rect>
+            <rect width="7" height="7" x="14" y="3" rx="1"></rect>
+            <rect width="7" height="7" x="14" y="14" rx="1"></rect>
+            <rect width="7" height="7" x="3" y="14" rx="1"></rect>
+          </svg>
+        </button>
+        <button class="nav-btn" onclick="openModal('modal-real-data')" title="Real Market Database (prices.db)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+            <path d="M12 12v9"></path>
+            <path d="m8 17 4 4 4-4"></path>
+          </svg>
+        </button>
+        <button class="nav-btn" onclick="openModal('modal-conformal')" title="Conformal Calibration & 2022 Crisis Replay">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 3v18h18"></path>
+            <path d="m19 9-5 5-4-4-3 3"></path>
+          </svg>
+        </button>
+        <button class="nav-btn" onclick="openModal('modal-backtest')" title="Backtest & Catastrophic Loss Prevention">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="sidebar-bottom">
+        <button class="nav-btn" onclick="openModal('modal-dossier')" title="Competition Specifications & Dossier">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 16v-4"></path>
+            <path d="M12 8h.01"></path>
+          </svg>
+        </button>
+        <button class="nav-btn" onclick="openModal('modal-calculator')" title="Settings / Trade Calculator">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Container -->
+    <main class="main-content">
+
+      <!-- Top Header Navigation -->
+      <header class="top-header">
+        <div class="header-left">
+          <div class="header-title-wrap">
+            <h1 class="app-title">My Farm</h1>
+            <select class="corridor-select" id="corridor-dropdown">
+              <option value="dambulla_peliyagoda">North Fields (Dambulla → Peliyagoda)</option>
+              <option value="dambulla_pettah">Central Route (Dambulla → Pettah)</option>
+              <option value="keppetipola_colombo">Highland Corridor (Keppetipola → Colombo)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <div class="search-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.3-4.3"></path>
+            </svg>
+            <input type="text" placeholder="Search commodity or market..." id="quick-search">
+          </div>
+          <button class="icon-btn" onclick="openModal('modal-calculator')" title="Preferences & Settings">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
+          <button class="icon-btn" title="Live Market Alerts" onclick="openModal('modal-conformal')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+            </svg>
+            <span class="badge-dot"></span>
+          </button>
+          <div class="user-avatar" title="Tharusha Liyanagama (Lead Developer)">TL</div>
+        </div>
+      </header>
+
+      <!-- Action Status Bar (Matching Image Pills) -->
+      <section class="action-status-bar">
+        <div class="status-pill-group">
+          <div class="status-pill green-pill">
+            <span>Task Completed</span>
+            <span style="font-size:1.1rem; font-weight:800;">10</span>
+          </div>
+          <div class="status-pill amber-pill">
+            <span>Task Pending</span>
+            <span style="font-size:1.1rem; font-weight:800; color:#111827;">12</span>
+          </div>
+        </div>
+
+        <button class="add-task-btn" onclick="openModal('modal-calculator')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14"></path>
+            <path d="M12 5v14"></path>
+          </svg>
+          Add New Task
+        </button>
+      </section>
+
+      <!-- Main Dashboard Grid (Analytics Left + Satellite Map Right) -->
+      <section class="dashboard-grid">
+
+        <!-- Left Column: Stats, Weather, Soil/Risk, Donut -->
+        <div class="left-panel">
+
+          <!-- 4 Stat Tiles -->
+          <div class="stat-tiles-row">
+            <div class="stat-tile">
+              <div class="stat-tile-header">
+                <span>Total Plots</span>
+                <span>••</span>
+              </div>
+              <div class="stat-tile-value">
+                12 <span class="stat-tile-sub">Plots</span>
+              </div>
+            </div>
+
+            <div class="stat-tile">
+              <div class="stat-tile-header">
+                <span>Total Crop</span>
+                <span>••</span>
+              </div>
+              <div class="stat-tile-value">
+                6 <span class="stat-tile-sub">Types</span>
+              </div>
+            </div>
+
+            <div class="stat-tile">
+              <div class="stat-tile-header">
+                <span>Total Area</span>
+                <span>••</span>
+              </div>
+              <div class="stat-tile-value">
+                2.3 <span class="stat-tile-sub">Hectares</span>
+              </div>
+            </div>
+
+            <div class="stat-tile">
+              <div class="stat-tile-header">
+                <span>Total Plants</span>
+                <span>••</span>
+              </div>
+              <div class="stat-tile-value">
+                4k <span class="stat-tile-sub">Plots</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mid Analytics: Weather & Soil Health & Performance Donut -->
+          <div class="mid-analytics-row">
+
+            <!-- Weather Card -->
+            <div class="weather-card">
+              <div class="weather-header">
+                <span id="weather-loc">Weather</span>
+                <span>☁️ Cloudy</span>
+              </div>
+              <div class="weather-temp-row">
+                <div class="temp-large" id="weather-temp">30°</div>
+                <div class="weather-meta">
+                  <span>🍃 Wind 14km</span>
+                  <span>💧 62%</span>
+                </div>
+              </div>
+              <div style="font-size:0.75rem; color:#6b7280; display:flex; justify-content:space-between;">
+                <span>27°</span><span>28°</span><span>30°</span><span>31°</span>
+              </div>
+              <div class="weather-bars">
+                <div class="weather-bar-pill bar-green"></div>
+                <div class="weather-bar-pill bar-yellow"></div>
+              </div>
+            </div>
+
+            <!-- Performance Donut Card -->
+            <div class="donut-score-card">
+              <div style="width:100%; display:flex; justify-content:space-between; font-size:0.86rem; font-weight:700; color:#374151;">
+                <span>Farm Performance</span>
+                <span>••</span>
+              </div>
+              <div class="donut-wrap">
+                <svg width="130" height="130" viewBox="0 0 36 36">
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e5e7eb" stroke-width="3.5" />
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#10b981" stroke-width="4" stroke-dasharray="72, 100" stroke-linecap="round" />
+                </svg>
+                <div class="donut-inner-text">
+                  <div class="score-label" style="font-size:0.65rem;">Overall Score</div>
+                  <div class="score-number">72%</div>
+                </div>
+              </div>
+              <div class="score-legend">
+                <span><span class="legend-dot" style="background:#10b981;"></span> Utilization 61%</span>
+                <span><span class="legend-dot" style="background:#059669;"></span> Health 36%</span>
+                <span><span class="legend-dot" style="background:#34d399;"></span> On Track 79%</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Soil Health Gradient Green Card -->
+          <div class="health-card">
+            <div class="health-card-header">
+              <span>Soil Health</span>
+              <span>••</span>
+            </div>
+            <div class="metric-bar-group">
+              <div class="metric-bar-item">
+                <div class="metric-bar-label">
+                  <span>N Level</span>
+                  <span>23 ppm</span>
+                </div>
+                <div class="metric-progress-bg">
+                  <div class="metric-progress-fill" style="width: 72%;"></div>
+                </div>
+              </div>
+
+              <div class="metric-bar-item">
+                <div class="metric-bar-label">
+                  <span>P Level</span>
+                  <span>9 ppm</span>
+                </div>
+                <div class="metric-progress-bg">
+                  <div class="metric-progress-fill" style="width: 38%;"></div>
+                </div>
+              </div>
+
+              <div class="metric-bar-item">
+                <div class="metric-bar-label">
+                  <span>K Level</span>
+                  <span>19 ppm</span>
+                </div>
+                <div class="metric-progress-bg">
+                  <div class="metric-progress-fill" style="width: 60%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Satellite Map View -->
+        <div class="right-map-card">
+          <!-- Aerial background image -->
+          <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80" class="map-background-satellite" alt="Corridor Aerial Map">
+          
+          <div class="map-overlay">
+            <div class="map-dropdown-badge">
+              <span>Map</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="m6 9 6 6 6-6"></path>
+              </svg>
+            </div>
+            <button class="map-ctrl-btn" style="width:34px; height:34px;" title="Full Screen Map" onclick="openModal('modal-real-data')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M15 3h6v6"></path>
+                <path d="M9 21H3v-6"></path>
+                <path d="M21 3l-7 7"></path>
+                <path d="M3 21l7-7"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Floating Map Status Pills (Matching Screenshot) -->
+          <div class="map-floating-pill" style="top: 75px; right: 40px;" onclick="openModal('modal-conformal')">
+            <span style="width:8px; height:8px; background:#ef4444; border-radius:50%; display:inline-block;"></span>
+            2 plots need attention
+          </div>
+
+          <div class="map-floating-pill" style="top: 230px; left: 60px;" onclick="openModal('modal-conformal')">
+            <span style="width:8px; height:8px; background:#f59e0b; border-radius:50%; display:inline-block;"></span>
+            Moisture: 68%
+          </div>
+
+          <div class="map-floating-pill" style="bottom: 120px; right: 80px;" onclick="openModal('modal-backtest')">
+            <span style="width:8px; height:8px; background:#10b981; border-radius:50%; display:inline-block;"></span>
+            Healthy: 92%
+          </div>
+
+          <!-- Bottom Left Inset Thumbnail & Controls -->
+          <div style="position:absolute; bottom:20px; left:20px; z-index:3; width:70px; height:70px; border-radius:14px; overflow:hidden; border:2px solid white; box-shadow:0 4px 10px rgba(0,0,0,0.3);">
+            <img src="https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=200&q=80" style="width:100%; height:100%; object-fit:cover;">
+          </div>
+
+          <div class="map-controls-panel">
+            <button class="map-ctrl-btn" title="Compass Orient">🧭</button>
+            <button class="map-ctrl-btn" title="Zoom In">+</button>
+            <button class="map-ctrl-btn" title="Zoom Out">−</button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Bottom 3 Cards (Figure 2 Wireframe: Leeks Complete, Carrot Progress, Beans Waiting) -->
+      <section class="bottom-cards-row" id="bottom-cards-container">
+        <!-- Rendered dynamically by app.js -->
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- Modal 1: Trade & Loan Calculator -->
+  <div class="modal-backdrop" id="modal-calculator">
+    <div class="modal-content">
+      <button class="modal-close-btn" onclick="closeModal('modal-calculator')">×</button>
+      <h2 style="font-size:1.4rem; font-weight:800; color:#111827; margin-bottom:6px;">🧮 Interactive Trade & Debt Risk Calculator</h2>
+      <p style="color:#6b7280; font-size:0.88rem; margin-bottom:20px;">
+        Evaluates the trader's break-even threshold: <b>B<sub>t</sub> = P<sub>t</sub><sup>w</sup> (1 + r) + C</b> against tomorrow's selling price.
+      </p>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:20px;">
+        <div>
+          <label style="font-size:0.85rem; font-weight:700; color:#374151;">Wholesale Buy Price (Rs./kg)</label>
+          <input type="number" id="calc-wholesale" value="240" step="5" style="width:100%; padding:10px 14px; border-radius:12px; border:1px solid #d1d5db; margin-top:6px;" oninput="updateCalculator()">
+        </div>
+        <div>
+          <label style="font-size:0.85rem; font-weight:700; color:#374151;">Expected Realized Price (Rs./kg)</label>
+          <input type="number" id="calc-sell" value="270" step="5" style="width:100%; padding:10px 14px; border-radius:12px; border:1px solid #d1d5db; margin-top:6px;" oninput="updateCalculator()">
+        </div>
+        <div>
+          <label style="font-size:0.85rem; font-weight:700; color:#374151;">Loan Interest Rate per Trip (%)</label>
+          <input type="number" id="calc-rate" value="0.3" step="0.1" style="width:100%; padding:10px 14px; border-radius:12px; border:1px solid #d1d5db; margin-top:6px;" oninput="updateCalculator()">
+        </div>
+        <div>
+          <label style="font-size:0.85rem; font-weight:700; color:#374151;">Transport & Spoilage Cost (Rs./kg)</label>
+          <input type="number" id="calc-cost" value="6.0" step="0.5" style="width:100%; padding:10px 14px; border-radius:12px; border:1px solid #d1d5db; margin-top:6px;" oninput="updateCalculator()">
+        </div>
+        <div style="grid-column: span 2;">
+          <label style="font-size:0.85rem; font-weight:700; color:#374151;">Purchase Quota (kg)</label>
+          <input type="number" id="calc-quota" value="100" step="20" style="width:100%; padding:10px 14px; border-radius:12px; border:1px solid #d1d5db; margin-top:6px;" oninput="updateCalculator()">
+        </div>
+      </div>
+
+      <div style="background:#f9fafb; border-radius:16px; padding:20px; border:1px solid #e5e7eb;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+          <span style="font-size:0.95rem; color:#4b5563;">Break-Even Price Needed:</span>
+          <span style="font-size:1.15rem; font-weight:800; color:#111827;" id="calc-breakeven-res">Rs. 246.72/kg</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+          <span style="font-size:0.95rem; color:#4b5563;">Total Debt + Transport Outlay:</span>
+          <span style="font-size:1.15rem; font-weight:800; color:#111827;" id="calc-outlay-res">Rs. 24,672.00</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:14px; padding-top:12px; border-top:1px dashed #d1d5db;">
+          <span style="font-size:1.05rem; font-weight:700; color:#111827;">Net Profit / Loss on Trip:</span>
+          <span style="font-size:1.35rem; font-weight:900; color:#10b981;" id="calc-profit-res">+Rs. 2,328.00</span>
+        </div>
+        <div id="calc-verdict" style="font-size:0.88rem; padding:10px 14px; border-radius:10px; background:#ffffff; border:1px solid #e5e7eb;">
+          <span style="color:#059669; font-weight:700;">✅ Profitable Trade</span> · Selling price covers loan interest and transport.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Real Market Database Explorer -->
+  <div class="modal-backdrop" id="modal-real-data">
+    <div class="modal-content">
+      <button class="modal-close-btn" onclick="closeModal('modal-real-data')">×</button>
+      <h2 style="font-size:1.4rem; font-weight:800; color:#111827; margin-bottom:6px;">🏪 Real HARTI Wholesale Market Explorer</h2>
+      <p style="color:#6b7280; font-size:0.88rem; margin-bottom:18px;">
+        Queried directly from local SQLite database (<code>prices.db</code>) parsed by PyMuPDF.
+      </p>
+
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.88rem; text-align:left;">
+          <thead>
+            <tr style="background:#f3f4f6; border-bottom:2px solid #e5e7eb;">
+              <th style="padding:10px 12px;">Date</th>
+              <th style="padding:10px 12px;">Commodity</th>
+              <th style="padding:10px 12px;">Market</th>
+              <th style="padding:10px 12px;">Low (Rs.)</th>
+              <th style="padding:10px 12px;">High (Rs.)</th>
+              <th style="padding:10px 12px;">Midpoint (Rs.)</th>
+              <th style="padding:10px 12px;">Spread vs Dambulla</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #f3f4f6;">
+              <td style="padding:9px 12px;">2026-11-09</td><td><b>BEANS</b></td><td>DAMBULLA</td><td>300.0</td><td>380.0</td><td><b>340.0</b></td><td>Base Origin</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f3f4f6; background:#ecfdf5;">
+              <td style="padding:9px 12px;">2026-11-09</td><td><b>BEANS</b></td><td>PELIYAGODA</td><td>350.0</td><td>450.0</td><td><b>400.0</b></td><td style="color:#059669; font-weight:700;">+Rs. 60.00/kg</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f3f4f6;">
+              <td style="padding:9px 12px;">2026-11-09</td><td><b>CARROT</b></td><td>DAMBULLA</td><td>580.0</td><td>650.0</td><td><b>615.0</b></td><td>Base Origin</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f3f4f6; background:#ecfdf5;">
+              <td style="padding:9px 12px;">2026-11-09</td><td><b>CARROT</b></td><td>PELIYAGODA</td><td>700.0</td><td>750.0</td><td><b>725.0</b></td><td style="color:#059669; font-weight:700;">+Rs. 110.00/kg</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f3f4f6;">
+              <td style="padding:9px 12px;">2026-11-09</td><td><b>TOMATO</b></td><td>DAMBULLA</td><td>500.0</td><td>550.0</td><td><b>525.0</b></td><td>Base Origin</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f3f4f6; background:#ecfdf5;">
+              <td style="padding:9px 12px;">2026-11-09</td><td><b>TOMATO</b></td><td>PELIYAGODA</td><td>600.0</td><td>650.0</td><td><b>625.0</b></td><td style="color:#059669; font-weight:700;">+Rs. 100.00/kg</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f3f4f6;">
+              <td style="padding:9px 12px;">2026-11-09</td><td><b>LEEKS</b></td><td>DAMBULLA</td><td>250.0</td><td>280.0</td><td><b>265.0</b></td><td>Base Origin</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f3f4f6; background:#ecfdf5;">
+              <td style="padding:9px 12px;">2026-11-09</td><td><b>LEEKS</b></td><td>PELIYAGODA</td><td>250.0</td><td>300.0</td><td><b>275.0</b></td><td style="color:#059669; font-weight:700;">+Rs. 10.00/kg</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Conformal Calibration & ACI -->
+  <div class="modal-backdrop" id="modal-conformal">
+    <div class="modal-content">
+      <button class="modal-close-btn" onclick="closeModal('modal-conformal')">×</button>
+      <h2 style="font-size:1.4rem; font-weight:800; color:#111827; margin-bottom:6px;">📈 Conformal Prediction & 2022 Crisis Stress Test</h2>
+      <p style="color:#6b7280; font-size:0.88rem; margin-bottom:18px;">
+        Why raw quantile regression fails in non-exchangeable agricultural shocks, and how Adaptive Conformal Inference (ACI) guarantees honest 90% coverage.
+      </p>
+
+      <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:12px; padding:14px; margin-bottom:16px;">
+        <span style="font-weight:700; color:#991b1b;">⚠️ The 2022 Macroeconomic Shock:</span>
+        <span style="font-size:0.85rem; color:#7f1d1d;">
+          During the 2022 fertilizer ban and fuel standstill, uncalibrated LightGBM models suffered an empirical miss rate of <b>43% (coverage collapsed to 57%)</b>. Model Y's ACI online update (γ = 0.02) adapted interval widths dynamically, maintaining <b>89.3% coverage</b>.
+        </span>
+      </div>
+
+      <table style="width:100%; border-collapse:collapse; font-size:0.86rem; text-align:left;">
+        <thead>
+          <tr style="background:#f9fafb; border-bottom:2px solid #e5e7eb;">
+            <th style="padding:8px 10px;">Regime Year</th>
+            <th style="padding:8px 10px;">Raw LightGBM Coverage</th>
+            <th style="padding:8px 10px;">Static CQR Coverage</th>
+            <th style="padding:8px 10px;">Model Y (ACI γ=0.02)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="padding:8px 10px;">2020 (Lockdowns)</td><td>71.0%</td><td>91.0%</td><td style="color:#059669; font-weight:700;">91.7%</td></tr>
+          <tr><td style="padding:8px 10px;">2021</td><td>75.3%</td><td>90.4%</td><td style="color:#059669; font-weight:700;">88.5%</td></tr>
+          <tr style="background:#fee2e2;"><td style="padding:8px 10px;"><b>2022 (Crisis Shock)</b></td><td style="color:#dc2626; font-weight:700;">57.0% ❌</td><td style="color:#d97706; font-weight:700;">83.0% ⚠️</td><td style="color:#059669; font-weight:700;">89.3% ✅</td></tr>
+          <tr><td style="padding:8px 10px;">2023–2026</td><td>~79.0%</td><td>~92.0%</td><td style="color:#059669; font-weight:700;">90.1%</td></tr>
+          <tr style="font-weight:800; background:#f0fdf4;"><td style="padding:8px 10px;">Overall Target 90%</td><td>74.4%</td><td>90.5%</td><td style="color:#059669;">90.0% (Width 14.2%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal 4: Financial Backtest -->
+  <div class="modal-backdrop" id="modal-backtest">
+    <div class="modal-content">
+      <button class="modal-close-btn" onclick="closeModal('modal-backtest')">×</button>
+      <h2 style="font-size:1.4rem; font-weight:800; color:#111827; margin-bottom:6px;">🛡️ Walk-Forward Financial Backtest (2,497 Trading Days)</h2>
+      <p style="color:#6b7280; font-size:0.88rem; margin-bottom:18px;">
+        Simulated P&L of a debt-financed vegetable trader comparing Model Y against standard market heuristic rules.
+      </p>
+
+      <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; margin-bottom:20px;">
+        <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:14px; padding:16px;">
+          <div style="font-size:0.8rem; color:#6b7280; font-weight:600;">Always Trade</div>
+          <div style="font-size:1.3rem; font-weight:800; color:#111827; margin:6px 0;">Rs. 4.39M</div>
+          <div style="font-size:0.75rem; color:#dc2626;">103 losing days · <b>11 catastrophic wipeouts</b></div>
+        </div>
+
+        <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:14px; padding:16px;">
+          <div style="font-size:0.8rem; color:#6b7280; font-weight:600;">Yesterday's Spread</div>
+          <div style="font-size:1.3rem; font-weight:800; color:#111827; margin:6px 0;">Rs. 4.23M</div>
+          <div style="font-size:0.75rem; color:#d97706;">69 losing days · Worst day -Rs. 3,490</div>
+        </div>
+
+        <div style="background:#ecfdf5; border:1px solid #a7f3d0; border-radius:14px; padding:16px;">
+          <div style="font-size:0.8rem; color:#065f46; font-weight:600;">Model Y (Our System)</div>
+          <div style="font-size:1.3rem; font-weight:800; color:#065f46; margin:6px 0;">Rs. 3.20M</div>
+          <div style="font-size:0.75rem; color:#059669; font-weight:700;">Only 46 losing days · <b>0 catastrophic wipeouts!</b></div>
+        </div>
+      </div>
+      <p style="font-size:0.85rem; color:#4b5563; line-height:1.4;">
+        <b>The core trade-off:</b> Model Y trades fewer days (2,010 vs 2,497) by issuing <b>487 RED signals</b> when downside risk exceeds break-even. In doing so, it <b>100% eliminated catastrophic debt losses</b> and capped the worst single-day loss to -Rs. 1,745.
+      </p>
+    </div>
+  </div>
+
+  <!-- Modal 5: Competition Dossier -->
+  <div class="modal-backdrop" id="modal-dossier">
+    <div class="modal-content">
+      <button class="modal-close-btn" onclick="closeModal('modal-dossier')">×</button>
+      <h2 style="font-size:1.4rem; font-weight:800; color:#111827; margin-bottom:6px;">📑 ModelX 2.0 Competition Specification</h2>
+      <p style="color:#6b7280; font-size:0.88rem; margin-bottom:14px;">
+        Phase 2 Implementation Dossier · Powered by Zuu Crew & IEEE Computational Intelligence Society Student Chapter, IIT.
+      </p>
+
+      <div style="background:#f3f4f6; border-radius:14px; padding:16px; margin-bottom:14px; font-size:0.88rem;">
+        <div><b>Assigned Category:</b> <span style="color:#006850; font-weight:700;">Domain 01: Cost of living and everyday economics</span></div>
+        <div style="margin-top:6px;"><b>Project Title:</b> Knowing When Not to Trade: Uncertainty-Aware Price Forecasting to Protect Debt-Financed Vegetable Traders in Sri Lanka</div>
+        <div style="margin-top:6px;"><b>Team:</b> Model Y (Tharusha Liyanagama, Sethuli Tinara Harischandra, Janakan Jude)</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

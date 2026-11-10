@@ -1,0 +1,12 @@
+{
+  "name": "model-y-agroshield",
+  "productName": "Model Y — AgroShield",
+  "version": "1.0.0",
+  "description": "Uncertainty-Aware Price Forecasting to Protect Debt-Financed Vegetable Traders in Sri Lanka",
+  "main": "electron/main.cjs",
+  "author": "Team Model Y (Tharusha Liyanagama, Sethuli Tinara Harischandra, Janakan Jude)",
+  "scripts": {
+    "start": "electron .",
+    "web": "python -m http.server 3000 --directory ui"
+  }
+}
