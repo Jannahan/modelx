@@ -67,40 +67,23 @@ Rather than predicting an overconfident single-point estimate that encourages ri
 
 ## 3. Account of Data Used, Temporality & Gaps
 
-| Source | Coverage | Volume | System Role & Handling of Gaps |
-| :--- | :--- | :--- | :--- |
-| **HARTI Daily Food Bulletin** | 2015–2026 | 3,141 PDFs | Primary target and lag features. Dashes (`-`) strictly stored as `NULL`/`NaN` (never zero). Multi-year layout shifts handled by modular regex. |
-| **CBSL Daily Price Report** | 2016–2026 | ~2,500 PDFs | Cross-validation for Pettah/Dambulla retail and qualitative supply shock NLP tags. |
-| **Open-Meteo Weather API** | 2015–2026 | 4 Stations | Daily precipitation sums and 3d/7d/14d rainfall accumulations (Nuwara Eliya, Welimada, Matale, Dambulla). |
-| **National Fuel / Diesel** | 2015–2026 | Revisions | Ceylon Petroleum Corporation (CPC) diesel price revisions driving transport cost $C_t$. |
+> **Status (work in progress):** the full HARTI archive (3,140 English bulletins, Jun 2015 – Nov 2026) is being downloaded and parsed into `prices.db`. This section will be replaced with the final real-data counts and gap report from `src/data_quality.py`.
+
+| Source | Status | Role |
+| :--- | :--- | :--- |
+| **HARTI Daily Food Bulletin** | Indexed: 3,140 bulletins. Backfill in progress. 3 bulletins return HTTP 404 on HARTI's server (2023-07-29, 2023-08-30, 2023-10-28). | Dambulla wholesale (buy price) and Colombo terminal price (Pettah to 2021, Peliyagoda after) |
+| CBSL Daily Price Report | Not collected yet | Planned cross-check |
+| Open-Meteo weather | Not collected yet | Planned rainfall features |
+| CPC diesel revisions | Not collected yet | Planned transport cost $C_t$ |
 
 ---
 
-## 4. Honest Evaluation Against Proposal (2,497 Trading Days)
+## 4. Evaluation
 
-We evaluated Model Y over **2,497 trading days (Oct 2019 to Oct 2026)** in a strict walk-forward simulation with zero look-ahead bias.
+> **The numbers below the line were produced on _synthetic_ data** (`src/make_fake_market.py`, `python src/backtest.py --synthetic`). They validate that the CQR + ACI + decision pipeline behaves as designed. They are **not** real-market results. Real walk-forward results on HARTI data (`python src/backtest.py`) will replace them.
 
-### A. The 2022 Crisis Stress Test (Coverage Recovery)
-During the 2022 fertilizer ban and fuel crisis (inflation $> 80\%$), standard machine learning models failed. Model Y's ACI restored honest coverage:
-
-| Regime / Year | Raw LightGBM | Static CQR | Model Y (ACI $\gamma=0.02$) | Safety Verdict |
-| :--- | :---: | :---: | :---: | :--- |
-| **2020 (Lockdowns)** | 71.0% | 91.0% | **91.7%** | Maintained coverage during curfew closures |
-| **2021 (Calm)** | 75.3% | 90.4% | **88.5%** | Tight intervals, high precision |
-| **2022 (Macro Crisis)** | **57.0%** ❌ | **83.0%** ⚠️ | **89.3%** ✅ | **ACI adapted and restored target coverage** |
-| **2023–2026** | 78.4% | 91.5% | **90.2%** | Stable post-crisis calibration |
-| **Overall (2019–2026)** | **74.4%** | **90.5%** | **90.0%** | **Exact 90.0% target coverage achieved** |
-
-### B. Downside Debt Protection & Catastrophic Loss Elimination
-Comparing Model Y against standard market heuristic rules over 2,497 trading days:
-
-| Trading Strategy | Total Net P&L | Traded Days | Losing Days | Catastrophic Losses ($>30\%$) | Worst Single Day |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Always Trade** | Rs. 4,390,901 | 2,497 | 103 days | 11 events | -Rs. 6,537 |
-| **Yesterday's Spread Rule** | Rs. 4,234,874 | 2,329 | 69 days | 0 events | -Rs. 3,490 |
-| **Model Y (Our System)** | **Rs. 3,200,604** | **2,010** | **46 days (-55%)** | **0 events (100% eliminated)** | **-Rs. 1,745 (-73%)** |
-
-**The Economic Trade-off:** By issuing **487 RED signals** on unsafe days, Model Y eliminated **100% of catastrophic debt wipeouts** and reduced worst-case losses by **73%**, safeguarding small borrowers from insolvency.
+Synthetic sanity check, 2,497 simulated days (2019-12 to 2026-10). 90% interval coverage:
+Raw LightGBM 73.5% · Naive 86.5% · ARIMA 89.4% · Rolling CQR 89.6% · **CQR + ACI 90.1%**.
 
 ---
 

@@ -8,5 +8,8 @@
   "scripts": {
     "start": "electron .",
     "web": "python -m http.server 3000 --directory ui"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7"
   }
 }

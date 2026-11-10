@@ -130,124 +130,91 @@ st.markdown("---")
 tabs = st.tabs([
     "📱 Trader Morning Assistant",
     "📊 Real Market Explorer (prices.db)",
-    "📈 Conformal Calibration & ACI (2022 Crisis)",
-    "🛡️ Backtest & Catastrophic Loss Prevention",
+    "📈 Calibration (CQR + ACI)",
+    "🛡️ Backtest & Trader P&L",
     "📑 Architecture & Competition Dossier"
 ])
 
 # -------------------------------------------------------------------------------------------------
-# TAB 1: TRADER MORNING ASSISTANT (FIG 2 WIREFRAME REPLICA)
+# Results produced by `python src/backtest.py` (walk-forward on real HARTI data)
+# -------------------------------------------------------------------------------------------------
+import json, glob
+sys.path.append(os.path.join(APP_DIR, "src"))
+from decision import break_even, decide
+
+RESULTS_DIR = os.path.join(APP_DIR, "results")
+CROPS = ["BEANS", "CARROT", "TOMATO", "LEEKS"]
+
+
+@st.cache_data
+def load_summaries():
+    out = {}
+    for c in CROPS:
+        p = os.path.join(RESULTS_DIR, f"summary_{c.lower()}.json")
+        if os.path.exists(p):
+            with open(p) as f:
+                out[c] = json.load(f)
+    return out
+
+
+@st.cache_data
+def load_backtest(c):
+    return pd.read_csv(os.path.join(RESULTS_DIR, f"backtest_{c.lower()}.csv"), parse_dates=["date"])
+
+
+SUMMARIES = load_summaries()
+if not SUMMARIES:
+    st.error("No results found in results/. Run `python src/backtest.py` first.")
+    st.stop()
+
+# -------------------------------------------------------------------------------------------------
+# TAB 1: TRADER MORNING ASSISTANT
 # -------------------------------------------------------------------------------------------------
 with tabs[0]:
-    st.subheader("☀️ Daily Morning Decision Screen (06:00 AM Dawn Briefing)")
-    st.caption("Customized risk evaluation comparing calibrated price bounds against trader break-even costs before purchasing stock.")
+    st.subheader("☀️ Morning Decision Screen (06:00 briefing)")
+    st.caption("Signals come from the latest HARTI bulletin in prices.db. Change your loan and cost profile "
+               "and the decision rule re-runs on the calibrated interval.")
 
     col_w1, col_w2 = st.columns([2, 1])
-
     with col_w2:
-        st.markdown("### ⚙️ Trader Loan & Cost Profile")
+        st.markdown("### ⚙️ Your loan & cost profile")
         with st.container(border=True):
-            r_input = st.slider("Loan Interest Rate per Trip (%)", min_value=0.0, max_value=2.0, value=0.3, step=0.1, help="Typical informal microfinance or daily loan interest rate")
-            c_input = st.slider("Transport & Spoilage Cost (Rs./kg)", min_value=2.0, max_value=20.0, value=6.0, step=0.5, help="Trucking diesel cost + handling & spoilage allowance")
-            quota_kg = st.number_input("Purchase Quota (kg)", min_value=20, max_value=2000, value=100, step=20)
-            
+            r_input = st.slider("Loan interest per trip (%)", 0.0, 5.0, 0.3, 0.1)
+            c_input = st.slider("Transport & spoilage (Rs./kg)", 0.0, 40.0, 6.0, 0.5)
+            quota_kg = st.number_input("Usual purchase (kg)", 20, 2000, 100, 20)
             r_frac = r_input / 100.0
-            st.info(f"Break-even formula: $B_t = P_t^w(1 + {r_frac}) + {c_input}$")
+            st.info(f"Break-even: $B_t = P_t^w(1 + {r_frac:.3f}) + {c_input}$")
 
     with col_w1:
-        st.markdown("#### Market Signals for Today (Peliyagoda & Pettah Corridors)")
-
-        # Card 1: Beans (RED)
-        w_beans = 400.0
-        b_beans = w_beans * (1 + r_frac) + c_input
-        st.markdown(f"""
-        <div class="card-red">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="card-title">Beans <span class="card-route">· Dambulla → Peliyagoda Wholesale</span></span>
-                <span class="status-badge-red">DO NOT BORROW TODAY</span>
-            </div>
-            <div style="margin-top: 10px; font-weight: 600; color: #991B1B;">
-                ⚠️ Reason: Dambulla and Peliyagoda prices are out of step this week (breakdown flag active). Forecast is too uncertain.
-            </div>
-            <div style="margin-top: 12px; display: flex; justify-content: space-between; font-size: 0.95rem; color: #374151;">
-                <span>Wholesale Cost: <b>Rs. {w_beans:.2f}/kg</b></span>
-                <span>Break-Even: <b>Rs. {b_beans:.2f}/kg</b></span>
-                <span style="color: #991B1B;"><b>Range: [HIDDEN]</b></span>
-            </div>
-            <div style="margin-top: 6px; font-size: 0.8rem; color: #6B7280; font-style: italic;">
-                * Point forecast and range are hidden on RED to prevent cognitive anchoring when the trade is statistically unsafe.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # Card 2: Carrot (AMBER)
-        w_carrot = 240.0
-        b_carrot = w_carrot * (1 + r_frac) + c_input
-        q_lo_carrot, q_hi_carrot = 235.0, 300.0
-        st.markdown(f"""
-        <div class="card-amber">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="card-title">Carrot <span class="card-route">· Dambulla → Pettah Terminal</span></span>
-                <span class="status-badge-amber">CAUTION: BUY LESS / CASH ONLY</span>
-            </div>
-            <div style="margin-top: 10px; font-weight: 500; color: #92400E;">
-                ⚖️ Reason: Expected median price covers debt, but 5th percentile lower bound falls below break-even. Loss is plausible.
-            </div>
-            <div style="margin-top: 12px; display: flex; justify-content: space-between; font-size: 0.95rem; color: #374151;">
-                <span>Wholesale: <b>Rs. {w_carrot:.2f}/kg</b></span>
-                <span>Break-Even: <b>Rs. {b_carrot:.2f}/kg</b></span>
-                <span>Calibrated 90% Range: <b>Rs. {q_lo_carrot:.0f} – {q_hi_carrot:.0f}/kg</b></span>
-            </div>
-            <div style="margin-top: 6px; font-size: 0.8rem; color: #78350F;">
-                Suggested action: Reduce purchase volume to {quota_kg//2} kg, or fund exclusively with personal cash reserves (no debt).
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # Card 3: Leeks (GREEN)
-        w_leeks = 135.0
-        b_leeks = w_leeks * (1 + r_frac) + c_input
-        q_lo_leeks, q_hi_leeks = 165.0, 195.0
-        st.markdown(f"""
-        <div class="card-green">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="card-title">Leeks <span class="card-route">· Dambulla → Peliyagoda Wholesale</span></span>
-                <span class="status-badge-green">OK TO TRADE</span>
-            </div>
-            <div style="margin-top: 10px; font-weight: 500; color: #166534;">
-                ✅ Reason: Even the worst-case 5th percentile price (Rs. {q_lo_leeks:.0f}) safely covers loan interest and transport costs.
-            </div>
-            <div style="margin-top: 12px; display: flex; justify-content: space-between; font-size: 0.95rem; color: #374151;">
-                <span>Wholesale: <b>Rs. {w_leeks:.2f}/kg</b></span>
-                <span>Break-Even: <b>Rs. {b_leeks:.2f}/kg</b></span>
-                <span>Calibrated 90% Range: <b>Rs. {q_lo_leeks:.0f} – {q_hi_leeks:.0f}/kg</b></span>
-            </div>
-            <div style="margin-top: 6px; font-size: 0.8rem; color: #14532D;">
-                Suggested action: Buy full standard quota ({quota_kg} kg). Maximum downside bounded by conformal interval.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # Interactive Scenario Calculator
-    st.markdown("---")
-    st.markdown("### 🧮 Interactive Trader P&L Simulator")
-    calc_col1, calc_col2, calc_col3, calc_col4 = st.columns(4)
-
-    with calc_col1:
-        sel_comm = st.selectbox("Select Commodity", ["Beans", "Carrot", "Leeks", "Tomato"])
-    with calc_col2:
-        custom_w = st.number_input("Wholesale Buy Price (Rs./kg)", value=float(w_carrot), step=5.0)
-    with calc_col3:
-        custom_sell = st.number_input("Realized Selling Price (Rs./kg)", value=270.0, step=5.0)
-    with calc_col4:
-        calc_b = custom_w * (1 + r_frac) + c_input
-        profit_total = (custom_sell - calc_b) * quota_kg
-        st.metric("Break-Even Threshold", f"Rs. {calc_b:.2f}/kg", delta=f"{custom_sell - calc_b:.2f} Rs/kg margin")
-
-    if profit_total >= 0:
-        st.success(f"Estimated Net Trader Profit after paying debt interest ({r_input}%) & transport: **+Rs. {profit_total:,.2f}** on {quota_kg} kg.")
-    else:
-        st.error(f"Trader Debt Default / Net Loss: **-Rs. {abs(profit_total):,.2f}** on {quota_kg} kg. Model Y warning prevents this loss!")
+        any_today = next(iter(SUMMARIES.values()))["today"]["date"]
+        st.markdown(f"#### Dambulla → Colombo · bulletin of **{any_today}**")
+        styles = {"GREEN": ("card-green", "status-badge-green", "OK TO TRADE"),
+                  "AMBER": ("card-amber", "status-badge-amber", "CAUTION: BUY LESS / OWN CASH"),
+                  "RED": ("card-red", "status-badge-red", "DO NOT BORROW TODAY")}
+        for crop, s in SUMMARIES.items():
+            t = s["today"]
+            B = break_even(t["wholesale"], r_frac, c_input)
+            sig, reason, show = decide(t["L"], t["M"], t["U"], B, t["m_bar"],
+                                       breakdown=t["breakdown"], stale=t["stale"])
+            card, badge, label = styles[sig]
+            rng = f"Rs. {t['L']:.0f} – {t['U']:.0f}/kg" if show else "[HIDDEN]"
+            action = {"GREEN": f"Buy your usual {quota_kg} kg.",
+                      "AMBER": f"Buy about {quota_kg // 2} kg, with your own cash rather than a loan.",
+                      "RED": "Do not take a loan for this crop today. The range is hidden so it can't anchor you."}[sig]
+            st.markdown(f"""
+            <div class="{card}">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span class="card-title">{crop.title()} <span class="card-route">· Dambulla → Colombo</span></span>
+                <span class="{badge}">{label}</span>
+              </div>
+              <div style="margin-top:10px;font-weight:600;">Reason: {reason}.</div>
+              <div style="margin-top:12px;display:flex;justify-content:space-between;font-size:0.95rem;color:#374151;">
+                <span>Dambulla today: <b>Rs. {t['wholesale']:.0f}/kg</b></span>
+                <span>Your break-even: <b>Rs. {B:.0f}/kg</b></span>
+                <span>Tomorrow, 90% range: <b>{rng}</b></span>
+              </div>
+              <div style="margin-top:6px;font-size:0.85rem;color:#4B5563;">{action}</div>
+            </div>""", unsafe_allow_html=True)
 
 # -------------------------------------------------------------------------------------------------
 # TAB 2: REAL MARKET DATA EXPLORER
@@ -267,7 +234,7 @@ with tabs[1]:
         
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("Cataloged Bulletins (2015–2026)", f"{total_bulletins:,}")
-        m2.metric("Parsed Sample Bulletins", f"{parsed_bulletins}")
+        m2.metric("Parsed Bulletins", f"{parsed_bulletins}")
         m3.metric("Extracted Price Rows", f"{total_obs:,}")
         m4.metric("Database Format", "SQLite (WAL Mode)")
 
@@ -289,7 +256,7 @@ with tabs[1]:
             with c_chart:
                 st.markdown(f"#### Wholesale Price Movement: {q_comm}")
                 fig = px.line(
-                    raw_df[raw_df["market_id"].isin(["DAMBULLA", "PELIYAGODA", "KANDY", "MEEGODA"])],
+                    raw_df[raw_df["market_id"].isin(["DAMBULLA", "PELIYAGODA", "PETTAH"])],
                     x="date", y="price_mid", color="market_id",
                     markers=True,
                     labels={"price_mid": "Wholesale Price (Rs./kg)", "date": "Bulletin Date", "market_id": "Market Hub"},
@@ -307,90 +274,82 @@ with tabs[1]:
         st.error(f"Database not found at {DB_PATH}. Run `python src/db.py` to initialize.")
 
 # -------------------------------------------------------------------------------------------------
-# TAB 3: CONFORMAL CALIBRATION & 2022 CRISIS
+# TAB 3: CONFORMAL CALIBRATION
 # -------------------------------------------------------------------------------------------------
 with tabs[2]:
-    st.subheader("📈 Conformalized Quantile Regression (CQR) & Adaptive Conformal Inference (ACI)")
-    st.markdown("""
-    Agricultural prices in Sri Lanka are **non-exchangeable** and experience sharp distribution shifts 
-    (e.g., COVID market lockdowns in 2020, and the **2022 fertilizer ban + fuel distribution crisis** where inflation exceeded 80%).
-    Standard machine learning models fail during shocks. Model Y uses **Adaptive Conformal Inference (ACI)** to maintain coverage guarantees.
-    """)
-
-    # Math details
-    with st.expander("📐 View Mathematical Formulas (Eq. 2–5 from Proposal)", expanded=False):
+    st.subheader("📈 Calibration: does the 90% range really contain the price 90% of the time?")
+    with st.expander("📐 Formulas (Eq. 2–5)", expanded=False):
         st.markdown(r"""
-        1. **LightGBM Quantile Pinball Loss:**
-           $$\mathcal{L}_{\tau}(y, \hat{y}) = \max\left\{ \tau(y - \hat{y}), (1 - \tau)(\hat{y} - y) \right\}, \quad \tau \in \{0.05, 0.50, 0.95\}$$
-        2. **CQR Nonconformity Score:**
-           $$s_i = \max\left\{ \hat{q}_{\text{lo}}(x_i) - y_i,\; y_i - \hat{q}_{\text{hi}}(x_i) \right\}$$
-        3. **ACI Online Error Rate Update (Gibbs & Candès, 2021):**
-           $$\alpha_{t+1} = \alpha_t + \gamma\left(\alpha - \mathbb{1}\{y_t \notin C_t\}\right)$$
+        1. Pinball loss: $\mathcal{L}_{\tau}(y,\hat y)=\max\{\tau(y-\hat y),(1-\tau)(\hat y-y)\}$, $\tau\in\{0.05,0.5,0.95\}$
+        2. CQR score: $s_i=\max\{\hat q_{lo}(x_i)-y_i,\;y_i-\hat q_{hi}(x_i)\}$
+        3. ACI: $\alpha_{t+1}=\alpha_t+\gamma(\alpha-\mathbb 1\{y_t\notin C_t\})$
         """)
 
-    # Display 2022 Shock Replay Chart
-    st.markdown("### 🌪️ The 2022 Crisis Stress Test")
-    fig_path = os.path.join(APP_DIR, "figures", "aci_2022.png")
-    if os.path.exists(fig_path):
-        st.image(fig_path, caption="Adaptive Conformal Inference (ACI) automatically expanding interval width during the 2022 macroeconomic shock to prevent undercoverage.", use_container_width=True)
-    else:
-        st.info("Chart figure not found. Run `python src/plot_aci.py` to generate.")
+    crop3 = st.selectbox("Commodity", list(SUMMARIES), key="crop3")
+    s3 = SUMMARIES[crop3]
+    st.caption(f"Walk-forward test {s3['period'][0]} → {s3['period'][1]} · {s3['eval_days']:,} bulletin days · target 90%")
 
-    # Table of Year-by-Year Coverage
-    st.markdown("#### Empirical Coverage Comparison Across Regimes")
-    cov_data = {
-        "Year": ["2020 (Lockdowns)", "2021", "2022 (Macro Crisis)", "2023", "2024", "2025", "2026 (YTD)", "Overall"],
-        "Raw LightGBM Coverage": ["71.0%", "75.3%", "57.0% ❌", "75.9%", "83.1%", "78.4%", "81.2%", "74.4%"],
-        "Static CQR Coverage": ["91.0%", "90.4%", "83.0% ⚠️", "95.6%", "91.5%", "90.4%", "91.7%", "90.5%"],
-        "Model Y (CQR + ACI γ=0.02)": ["91.7%", "88.5%", "89.3% ✅", "91.2%", "89.3%", "89.9%", "90.8%", "90.0%"]
-    }
-    st.table(pd.DataFrame(cov_data))
-    st.caption("ACI successfully restores honest 90% interval coverage even during the unprecedented 2022 macroeconomic shock.")
+    rows = [{"Method": k, "Coverage": f"{v['coverage']:.1%}", "Avg width (% of price)": f"{v['width_pct']:.1f}%"}
+            for k, v in s3["intervals"].items()]
+    st.table(pd.DataFrame(rows))
+
+    st.markdown("#### Coverage by year")
+    by_year = pd.DataFrame(s3["coverage_by_year"]).applymap(lambda v: f"{v:.1%}")
+    st.dataframe(by_year, use_container_width=True)
+
+    bt = load_backtest(crop3)
+    lo_d, hi_d = bt.date.min().date(), bt.date.max().date()
+    d0, d1 = st.slider("Window", min_value=lo_d, max_value=hi_d,
+                       value=(max(lo_d, pd.Timestamp("2021-07-01").date()), min(hi_d, pd.Timestamp("2023-06-30").date())))
+    w = bt[(bt.date.dt.date >= d0) & (bt.date.dt.date <= d1) & bt.y.notna()]
+    miss = (w.y < w.L) | (w.y > w.U)
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=w.date, y=w.U, line=dict(width=0), showlegend=False, hoverinfo="skip"))
+    fig.add_trace(go.Scatter(x=w.date, y=w.L, fill="tonexty", line=dict(width=0), name="90% ACI range",
+                             fillcolor="rgba(22,163,74,0.25)"))
+    fig.add_trace(go.Scatter(x=w.date, y=w.y, name="Actual Colombo price", line=dict(color="#111827", width=1)))
+    fig.add_trace(go.Scatter(x=w.date[miss], y=w.y[miss], mode="markers", name="Outside range",
+                             marker=dict(color="#DC2626", size=6)))
+    fig.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=20), yaxis_title="Rs./kg")
+    st.plotly_chart(fig, use_container_width=True)
+    fig_a = px.line(w, x="date", y="alpha_t", height=200, labels={"alpha_t": "α_t"})
+    fig_a.add_hline(y=0.10, line_dash="dash")
+    st.plotly_chart(fig_a, use_container_width=True)
+    st.caption("When the price escapes the range, α_t drops and the next day's range widens (Eq. 5).")
 
 # -------------------------------------------------------------------------------------------------
-# TAB 4: BACKTEST & CATASTROPHIC LOSS ELIMINATION
+# TAB 4: BACKTEST
 # -------------------------------------------------------------------------------------------------
 with tabs[3]:
-    st.subheader("🛡️ Financial Backtest & Downside Risk Protection (2019–2026)")
-    st.markdown("""
-    Walk-forward simulation over **2,497 trading days** comparing **Model Y** against standard trader heuristic baselines.
-    The primary goal is not squeezing extra pennies in calm periods, but **preventing ruinous debt-financed wipeouts**.
-    """)
+    st.subheader("🛡️ Trader P&L backtest (walk-forward, real data)")
+    crop4 = st.selectbox("Commodity", list(SUMMARIES), key="crop4")
+    s4 = SUMMARIES[crop4]
+    p = s4["params"]
+    st.caption(f"{s4['period'][0]} → {s4['period'][1]} · {s4['eval_days']:,} days · "
+               f"{p['quota_kg']} kg/day · interest {p['r']:.1%} per trip · transport Rs. {p['C']}/kg · "
+               "GREEN = full quota, AMBER = half, RED = none")
 
-    b_col1, b_col2, b_col3, b_col4 = st.columns(4)
-    b_col1.metric("Trading Days Evaluated", "2,497")
-    b_col2.metric("Catastrophic Losses Avoided", "100%", delta="11 events → 0")
-    b_col3.metric("Losing Days Cut", "46 vs 103", delta="-55.3% fewer losses")
-    b_col4.metric("Worst Drawdown Reduction", "-Rs. 1,745", delta="+Rs. 4,792 saved")
+    pnl = pd.DataFrame(s4["pnl"]).T
+    pnl.columns = ["Total P&L (Rs.)", "Days traded", "Losing days", "Catastrophic (>30% loss)",
+                   "Rs. lost in catastrophes", "Worst day (Rs.)"]
+    st.dataframe(pnl.style.format({"Total P&L (Rs.)": "{:,.0f}", "Rs. lost in catastrophes": "{:,.0f}",
+                                   "Worst day (Rs.)": "{:,.0f}"}), use_container_width=True)
 
-    # Strategy comparison table
-    st.markdown("#### Multi-Year Performance Summary")
-    perf_data = {
-        "Trading Strategy": ["Always Trade", "Yesterday's Spread Rule", "Model Y (Our System)"],
-        "Total Profit (Rs.)": ["Rs. 4,390,901", "Rs. 4,234,874", "Rs. 3,200,604"],
-        "Days Traded": [2497, 2329, 2010],
-        "Losing Trades": [103, 69, 46],
-        "Catastrophic Losses (>30%)": [11, 0, 0],
-        "Worst Single-Day Loss": ["-Rs. 6,537", "-Rs. 3,490", "-Rs. 1,745"]
-    }
-    st.dataframe(pd.DataFrame(perf_data), use_container_width=True)
+    k1, k2, k3 = st.columns(3)
+    rj = s4["refusal_justification_rate"]
+    k1.metric("Refusal justification", f"{rj:.1%}" if rj is not None else "–",
+              help="Share of RED days that would really have lost money")
+    k2.metric("Loss rate on an average day", f"{s4['base_loss_rate']:.1%}")
+    k3.metric("Pinball loss, median (Rs.)", f"{s4['pinball']['0.5']:.1f}")
 
-    # Signal distribution
-    st.markdown("#### Signal Distribution Over Time")
-    sig_data = pd.DataFrame({
-        "Year": [2020, 2021, 2022, 2023, 2024, 2025, 2026],
-        "GREEN (Safe to Trade)": [180, 310, 16, 299, 325, 283, 242],
-        "AMBER (Caution / Half Quota)": [36, 31, 157, 37, 9, 59, 24],
-        "RED (Do Not Borrow)": [150, 24, 192, 29, 32, 23, 37]
-    })
-    
+    sby = pd.DataFrame(s4["signals_by_year"]).T.fillna(0)
     fig_sig = go.Figure()
-    fig_sig.add_trace(go.Bar(x=sig_data["Year"], y=sig_data["GREEN (Safe to Trade)"], name="GREEN (Trade)", marker_color="#16A34A"))
-    fig_sig.add_trace(go.Bar(x=sig_data["Year"], y=sig_data["AMBER (Caution / Half Quota)"], name="AMBER (Caution)", marker_color="#D97706"))
-    fig_sig.add_trace(go.Bar(x=sig_data["Year"], y=sig_data["RED (Do Not Borrow)"], name="RED (Do Not Borrow)", marker_color="#DC2626"))
-    fig_sig.update_layout(barmode="stack", height=380, margin=dict(l=20, r=20, t=30, b=20), xaxis_title="Year", yaxis_title="Number of Days")
+    for sig, colr in [("GREEN", "#16A34A"), ("AMBER", "#D97706"), ("RED", "#DC2626")]:
+        if sig in sby:
+            fig_sig.add_trace(go.Bar(x=sby.index.astype(str), y=sby[sig], name=sig, marker_color=colr))
+    fig_sig.update_layout(barmode="stack", height=360, margin=dict(l=20, r=20, t=30, b=20),
+                          xaxis_title="Year", yaxis_title="Days")
     st.plotly_chart(fig_sig, use_container_width=True)
-    st.caption("Notice how in the crisis year 2022, Model Y issued 192 RED signals and 157 AMBER signals, shielding traders from borrowing during supply collapses.")
 
 # -------------------------------------------------------------------------------------------------
 # TAB 5: ARCHITECTURE & COMPETITION DOSSIER
@@ -440,8 +399,8 @@ with tabs[4]:
     st.markdown("---")
     st.markdown("### 📂 Generated Phase 2 Artifacts & Downloadable Guides")
     st.markdown("""
-    - 📄 **[ModelX_Dataset_Gathering_Guide.pdf](file:///d:/Model%20X/ModelX_Dataset_Gathering_Guide.pdf)** — Multi-source harvesting, cleaning, and SQLite schema specification.
-    - 📄 **[ModelX_Implementation_Plan.pdf](file:///d:/Model%20X/ModelX_Implementation_Plan.pdf)** — Phase 2 engineering roadmap, mathematical derivations, and evaluation metrics.
+    - 📄 **ModelX_Dataset_Gathering_Guide.pdf** — Multi-source harvesting, cleaning, and SQLite schema specification.
+    - 📄 **ModelX_Implementation_Plan.pdf** — Phase 2 engineering roadmap, mathematical derivations, and evaluation metrics.
     """)
 
 # Footer
