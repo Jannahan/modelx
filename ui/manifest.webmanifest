@@ -1,0 +1,13 @@
+{
+  "name": "Model Y: Should I borrow today?",
+  "short_name": "Model Y",
+  "description": "Calibrated price ranges and borrow / buy less / don't borrow signals for vegetable traders on the Dambulla to Colombo route.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1B2440",
+  "theme_color": "#1B2440",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
