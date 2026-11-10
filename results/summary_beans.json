@@ -1,0 +1,353 @@
+{
+  "commodity": "BEANS",
+  "data": "HARTI bulletins, Dambulla -> Colombo (Pettah to 2021, Peliyagoda after)",
+  "tune_period": [
+    "2016-11-15",
+    "2019-12-31"
+  ],
+  "period": [
+    "2020-01-01",
+    "2026-11-08"
+  ],
+  "eval_days": 1971,
+  "pinball": {
+    "0.05": 7.215977662560518,
+    "0.5": 24.588311562735203,
+    "0.95": 8.725849550752441
+  },
+  "intervals": {
+    "Naive (90-day ratio)": {
+      "coverage": 0.863013698630137,
+      "width_pct": 68.17267218769236
+    },
+    "ARIMA(1,1,1)": {
+      "coverage": 0.9061390157280568,
+      "width_pct": 78.23824869748964
+    },
+    "Raw LightGBM": {
+      "coverage": 0.7945205479452054,
+      "width_pct": 47.51866334916819
+    },
+    "Rolling CQR (gamma=0)": {
+      "coverage": 0.9036022323693557,
+      "width_pct": 65.47355514649513
+    },
+    "CQR + ACI (gamma=0.02)": {
+      "coverage": 0.9005580923389143,
+      "width_pct": 67.93858845982318
+    }
+  },
+  "coverage_by_year": {
+    "Naive (90-day ratio)": {
+      "2020": 0.897,
+      "2021": 0.849,
+      "2022": 0.884,
+      "2023": 0.852,
+      "2024": 0.813,
+      "2025": 0.883,
+      "2026": 0.882
+    },
+    "ARIMA(1,1,1)": {
+      "2020": 0.945,
+      "2021": 0.883,
+      "2022": 0.93,
+      "2023": 0.941,
+      "2024": 0.851,
+      "2025": 0.919,
+      "2026": 0.886
+    },
+    "Raw LightGBM": {
+      "2020": 0.815,
+      "2021": 0.756,
+      "2022": 0.832,
+      "2023": 0.813,
+      "2024": 0.734,
+      "2025": 0.778,
+      "2026": 0.839
+    },
+    "Rolling CQR (gamma=0)": {
+      "2020": 0.945,
+      "2021": 0.878,
+      "2022": 0.905,
+      "2023": 0.896,
+      "2024": 0.909,
+      "2025": 0.889,
+      "2026": 0.918
+    },
+    "CQR + ACI (gamma=0.02)": {
+      "2020": 0.945,
+      "2021": 0.873,
+      "2022": 0.899,
+      "2023": 0.902,
+      "2024": 0.904,
+      "2025": 0.886,
+      "2026": 0.911
+    }
+  },
+  "decision": {
+    "plan": {
+      "thresholds": {
+        "beta": 3.0,
+        "z_limit": 2.5,
+        "corr_limit": 0.35
+      },
+      "pnl": {
+        "Always Trade": {
+          "total_pnl": 5075937.5,
+          "days_traded": 1971,
+          "losing_days": 719,
+          "catastrophic": 43,
+          "catastrophic_rs": -591354.0,
+          "worst_day": -40847.5
+        },
+        "Yesterday's Spread": {
+          "total_pnl": 4494857.5,
+          "days_traded": 1301,
+          "losing_days": 403,
+          "catastrophic": 28,
+          "catastrophic_rs": -417957.5,
+          "worst_day": -40847.5
+        },
+        "Model Y": {
+          "total_pnl": 95069.75,
+          "days_traded": 64,
+          "losing_days": 19,
+          "catastrophic": 0,
+          "catastrophic_rs": 0.0,
+          "worst_day": -4091.25
+        }
+      },
+      "signals": {
+        "RED": 1907,
+        "AMBER": 61,
+        "GREEN": 3
+      },
+      "refusal_justification_rate": 0.36706869428421607,
+      "loss_rate_on_traded_days": 0.296875,
+      "base_loss_rate": 0.3647894469812278,
+      "breakdown_rate": 0.4378488077118214,
+      "red_reasons": {
+        "Forecast too uncertain to trust": 978,
+        "Dambulla -> Colombo price link has broken down": 859,
+        "This route has lost money on average over the last 90 days": 29,
+        "Expected price is below your break-even": 22,
+        "Price bulletin missing or out of date": 19
+      },
+      "signals_by_year": {
+        "2020": {
+          "AMBER": 3,
+          "GREEN": 0,
+          "RED": 143
+        },
+        "2021": {
+          "AMBER": 1,
+          "GREEN": 0,
+          "RED": 204
+        },
+        "2022": {
+          "AMBER": 6,
+          "GREEN": 1,
+          "RED": 320
+        },
+        "2023": {
+          "AMBER": 31,
+          "GREEN": 0,
+          "RED": 306
+        },
+        "2024": {
+          "AMBER": 5,
+          "GREEN": 0,
+          "RED": 337
+        },
+        "2025": {
+          "AMBER": 0,
+          "GREEN": 0,
+          "RED": 334
+        },
+        "2026": {
+          "AMBER": 15,
+          "GREEN": 2,
+          "RED": 263
+        }
+      }
+    },
+    "tuned": {
+      "thresholds": {
+        "beta": 1000000000.0,
+        "z_limit": 1000000000.0,
+        "corr_limit": -2.0
+      },
+      "pnl": {
+        "Always Trade": {
+          "total_pnl": 5075937.5,
+          "days_traded": 1971,
+          "losing_days": 719,
+          "catastrophic": 43,
+          "catastrophic_rs": -591354.0,
+          "worst_day": -40847.5
+        },
+        "Yesterday's Spread": {
+          "total_pnl": 4494857.5,
+          "days_traded": 1301,
+          "losing_days": 403,
+          "catastrophic": 28,
+          "catastrophic_rs": -417957.5,
+          "worst_day": -40847.5
+        },
+        "Model Y": {
+          "total_pnl": 2810935.0,
+          "days_traded": 1418,
+          "losing_days": 392,
+          "catastrophic": 22,
+          "catastrophic_rs": -153816.5,
+          "worst_day": -12905.000000000002
+        }
+      },
+      "signals": {
+        "AMBER": 1401,
+        "RED": 553,
+        "GREEN": 17
+      },
+      "refusal_justification_rate": 0.5913200723327305,
+      "loss_rate_on_traded_days": 0.2764456981664316,
+      "base_loss_rate": 0.3647894469812278,
+      "breakdown_rate": 0.0,
+      "red_reasons": {
+        "Expected price is below your break-even": 477,
+        "This route has lost money on average over the last 90 days": 57,
+        "Price bulletin missing or out of date": 19
+      },
+      "signals_by_year": {
+        "2020": {
+          "AMBER": 99,
+          "GREEN": 2,
+          "RED": 45
+        },
+        "2021": {
+          "AMBER": 132,
+          "GREEN": 0,
+          "RED": 73
+        },
+        "2022": {
+          "AMBER": 236,
+          "GREEN": 7,
+          "RED": 84
+        },
+        "2023": {
+          "AMBER": 258,
+          "GREEN": 4,
+          "RED": 75
+        },
+        "2024": {
+          "AMBER": 202,
+          "GREEN": 0,
+          "RED": 140
+        },
+        "2025": {
+          "AMBER": 242,
+          "GREEN": 2,
+          "RED": 90
+        },
+        "2026": {
+          "AMBER": 232,
+          "GREEN": 2,
+          "RED": 46
+        }
+      }
+    }
+  },
+  "pnl": {
+    "Always Trade": {
+      "total_pnl": 5075937.5,
+      "days_traded": 1971,
+      "losing_days": 719,
+      "catastrophic": 43,
+      "catastrophic_rs": -591354.0,
+      "worst_day": -40847.5
+    },
+    "Yesterday's Spread": {
+      "total_pnl": 4494857.5,
+      "days_traded": 1301,
+      "losing_days": 403,
+      "catastrophic": 28,
+      "catastrophic_rs": -417957.5,
+      "worst_day": -40847.5
+    },
+    "Model Y": {
+      "total_pnl": 2810935.0,
+      "days_traded": 1418,
+      "losing_days": 392,
+      "catastrophic": 22,
+      "catastrophic_rs": -153816.5,
+      "worst_day": -12905.000000000002
+    }
+  },
+  "signals": {
+    "AMBER": 1401,
+    "RED": 553,
+    "GREEN": 17
+  },
+  "signals_by_year": {
+    "2020": {
+      "AMBER": 99,
+      "GREEN": 2,
+      "RED": 45
+    },
+    "2021": {
+      "AMBER": 132,
+      "GREEN": 0,
+      "RED": 73
+    },
+    "2022": {
+      "AMBER": 236,
+      "GREEN": 7,
+      "RED": 84
+    },
+    "2023": {
+      "AMBER": 258,
+      "GREEN": 4,
+      "RED": 75
+    },
+    "2024": {
+      "AMBER": 202,
+      "GREEN": 0,
+      "RED": 140
+    },
+    "2025": {
+      "AMBER": 242,
+      "GREEN": 2,
+      "RED": 90
+    },
+    "2026": {
+      "AMBER": 232,
+      "GREEN": 2,
+      "RED": 46
+    }
+  },
+  "refusal_justification_rate": 0.5913200723327305,
+  "base_loss_rate": 0.3647894469812278,
+  "params": {
+    "r": 0.003,
+    "C": 6.0,
+    "quota_kg": 100,
+    "alpha": 0.1,
+    "gamma": 0.02,
+    "beta": 1000000000.0,
+    "z_limit": 1000000000.0,
+    "corr_limit": -2.0
+  },
+  "today": {
+    "date": "2026-11-09",
+    "wholesale": 425.0,
+    "break_even": 432.275,
+    "L": 345.83734178703946,
+    "M": 509.9963558712866,
+    "U": 686.7195099092496,
+    "signal": "AMBER",
+    "reason": "Likely profit, but a loss is possible - use own cash or buy less",
+    "m_bar": 52.0,
+    "stale": false,
+    "breakdown": false,
+    "beta": 1000000000.0
+  }
+}

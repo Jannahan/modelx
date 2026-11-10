@@ -1,0 +1,274 @@
+{
+  "bulletins_by_year": {
+    "2015": {
+      "listed": 125,
+      "downloaded": 124,
+      "parsed": 124,
+      "not_on_server": 1,
+      "empty_or_failed": 0
+    },
+    "2016": {
+      "listed": 242,
+      "downloaded": 240,
+      "parsed": 240,
+      "not_on_server": 2,
+      "empty_or_failed": 0
+    },
+    "2017": {
+      "listed": 239,
+      "downloaded": 221,
+      "parsed": 221,
+      "not_on_server": 18,
+      "empty_or_failed": 0
+    },
+    "2018": {
+      "listed": 238,
+      "downloaded": 234,
+      "parsed": 234,
+      "not_on_server": 4,
+      "empty_or_failed": 0
+    },
+    "2019": {
+      "listed": 242,
+      "downloaded": 239,
+      "parsed": 235,
+      "not_on_server": 3,
+      "empty_or_failed": 4
+    },
+    "2020": {
+      "listed": 186,
+      "downloaded": 185,
+      "parsed": 185,
+      "not_on_server": 1,
+      "empty_or_failed": 0
+    },
+    "2021": {
+      "listed": 218,
+      "downloaded": 212,
+      "parsed": 212,
+      "not_on_server": 6,
+      "empty_or_failed": 0
+    },
+    "2022": {
+      "listed": 329,
+      "downloaded": 328,
+      "parsed": 328,
+      "not_on_server": 1,
+      "empty_or_failed": 0
+    },
+    "2023": {
+      "listed": 341,
+      "downloaded": 338,
+      "parsed": 338,
+      "not_on_server": 3,
+      "empty_or_failed": 0
+    },
+    "2024": {
+      "listed": 346,
+      "downloaded": 346,
+      "parsed": 346,
+      "not_on_server": 0,
+      "empty_or_failed": 0
+    },
+    "2025": {
+      "listed": 339,
+      "downloaded": 339,
+      "parsed": 339,
+      "not_on_server": 0,
+      "empty_or_failed": 0
+    },
+    "2026": {
+      "listed": 295,
+      "downloaded": 295,
+      "parsed": 295,
+      "not_on_server": 0,
+      "empty_or_failed": 0
+    }
+  },
+  "bulletins_total": {
+    "listed": 3140,
+    "downloaded": 3101,
+    "parsed": 3097,
+    "not_on_server": 39,
+    "empty_or_failed": 4
+  },
+  "missing_bulletins_404": [
+    "2015-07-31",
+    "2016-05-01",
+    "2016-12-31",
+    "2017-02-01",
+    "2017-02-02",
+    "2017-02-03",
+    "2017-02-06",
+    "2017-02-07",
+    "2017-02-08",
+    "2017-02-09",
+    "2017-02-13",
+    "2017-02-14",
+    "2017-02-15",
+    "2017-02-16",
+    "2017-02-17",
+    "2017-02-20",
+    "2017-02-21",
+    "2017-02-22",
+    "2017-02-23",
+    "2017-02-27",
+    "2017-02-28",
+    "2018-02-13",
+    "2018-05-29",
+    "2018-06-30",
+    "2018-08-22",
+    "2019-02-19",
+    "2019-03-30",
+    "2019-03-31",
+    "2020-02-29",
+    "2021-02-26",
+    "2021-02-27",
+    "2021-02-28",
+    "2021-08-10",
+    "2021-10-30",
+    "2021-10-31",
+    "2022-04-28",
+    "2023-07-29",
+    "2023-08-30",
+    "2023-10-28"
+  ],
+  "price_rows": 376152,
+  "gate1_inverted_low_high": 0,
+  "gate2_jumps_over_60pct_all": 2286,
+  "gate2_jumps_over_60pct_core_corridor": 265,
+  "gate3_zero_prices": 0,
+  "gate3_share_no_trade_cells": 0.2797,
+  "colombo_column_label_by_year": {
+    "2015": {
+      "PELIYAGODA": 0,
+      "PETTAH": 124
+    },
+    "2016": {
+      "PELIYAGODA": 0,
+      "PETTAH": 240
+    },
+    "2017": {
+      "PELIYAGODA": 0,
+      "PETTAH": 219
+    },
+    "2018": {
+      "PELIYAGODA": 0,
+      "PETTAH": 234
+    },
+    "2019": {
+      "PELIYAGODA": 0,
+      "PETTAH": 235
+    },
+    "2020": {
+      "PELIYAGODA": 0,
+      "PETTAH": 184
+    },
+    "2021": {
+      "PELIYAGODA": 121,
+      "PETTAH": 91
+    },
+    "2022": {
+      "PELIYAGODA": 327,
+      "PETTAH": 1
+    },
+    "2023": {
+      "PELIYAGODA": 338,
+      "PETTAH": 0
+    },
+    "2024": {
+      "PELIYAGODA": 346,
+      "PETTAH": 0
+    },
+    "2025": {
+      "PELIYAGODA": 339,
+      "PETTAH": 0
+    },
+    "2026": {
+      "PELIYAGODA": 283,
+      "PETTAH": 0
+    }
+  },
+  "corridors": {
+    "BEANS": {
+      "days": 3019,
+      "first": "2015-06-22",
+      "last": "2026-11-09",
+      "days_per_year": {
+        "2015": 123,
+        "2016": 240,
+        "2017": 218,
+        "2018": 232,
+        "2019": 234,
+        "2020": 146,
+        "2021": 205,
+        "2022": 327,
+        "2023": 337,
+        "2024": 342,
+        "2025": 334,
+        "2026": 281
+      },
+      "max_gap_days": 94
+    },
+    "CARROT": {
+      "days": 3019,
+      "first": "2015-06-22",
+      "last": "2026-11-09",
+      "days_per_year": {
+        "2015": 123,
+        "2016": 240,
+        "2017": 218,
+        "2018": 232,
+        "2019": 234,
+        "2020": 146,
+        "2021": 205,
+        "2022": 327,
+        "2023": 337,
+        "2024": 342,
+        "2025": 334,
+        "2026": 281
+      },
+      "max_gap_days": 94
+    },
+    "TOMATO": {
+      "days": 3019,
+      "first": "2015-06-22",
+      "last": "2026-11-09",
+      "days_per_year": {
+        "2015": 123,
+        "2016": 240,
+        "2017": 218,
+        "2018": 232,
+        "2019": 234,
+        "2020": 146,
+        "2021": 205,
+        "2022": 327,
+        "2023": 337,
+        "2024": 342,
+        "2025": 334,
+        "2026": 281
+      },
+      "max_gap_days": 94
+    },
+    "LEEKS": {
+      "days": 3019,
+      "first": "2015-06-22",
+      "last": "2026-11-09",
+      "days_per_year": {
+        "2015": 123,
+        "2016": 240,
+        "2017": 218,
+        "2018": 232,
+        "2019": 234,
+        "2020": 146,
+        "2021": 205,
+        "2022": 327,
+        "2023": 337,
+        "2024": 342,
+        "2025": 334,
+        "2026": 281
+      },
+      "max_gap_days": 94
+    }
+  }
+}
