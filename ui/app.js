@@ -95,7 +95,7 @@
     const f = evaluate(focusCrop());
 
     $("#counts").innerHTML = `<span class="count go">OK to trade <b>${n.go}</b></span><span class="count caution">Buy less <b>${n.caution}</b></span><span class="count stop">Do not borrow <b>${n.stop}</b></span>`;
-    $("#fresh-chip").textContent = `HARTI bulletin ${shortDay(D.bulletin_date)} (${ageText})`;
+    $("#fresh-chip").textContent = `Prices ${shortDay(D.bulletin_date)} (${ageText})` + (D.last_run ? `, checked ${D.last_run.started.slice(11)}` : "");
     const ne = D.weather && D.weather.temps && D.weather.temps.NUWARA_ELIYA;
     $("#meta-line").textContent = `Prices of ${shortDay(D.bulletin_date)} (${ageText})${ne ? ` | Nuwara Eliya ${fmt(ne.max)}°C` : ""}`;
     const banner = $("#stale-banner");
@@ -149,7 +149,7 @@
       const qty = sig === "go" ? `${fmt(S.quota)} kg` : sig === "caution" ? `${fmt(Math.round(S.quota / 2))} kg, own cash` : "None on credit";
       return `<li class="card ${sig}"><button type="button" data-crop="${c.id}" aria-label="${esc(c.name)}: ${SIG[sig].label}. ${esc(reason)} Open details.">
         <div class="card-top"><span class="pill"><svg aria-hidden="true"><use href="#${SIG[sig].icon}"/></svg>${SIG[sig].label}</span><span class="crop">${esc(c.name)}</span></div>
-        <p class="route">Dambulla → ${esc(c.colombo_market)}</p>
+        <p class="route">Dambulla → ${esc(c.colombo_market)}${t.source === "CBSL" ? " (from CBSL; HARTI not out yet)" : ""}</p>
         <div class="ruler">${ruler(t, B, sig)}</div>
         <dl class="kv"><dt>Break-even</dt><dd>${rs(B)}/kg</dd>
           <dt>Tomorrow, 90% range</dt><dd>${show ? `${rs(t.L)} – ${fmt(t.U)}` : "Hidden"}</dd>
@@ -310,7 +310,7 @@
     $("#an-crops").innerHTML = D.crops.map((c) => `<button role="tab" aria-selected="${c.id === anCrop}" data-crop="${c.id}">${esc(c.name)}</button>`).join("");
     const c = D.crops.find((k) => k.id === anCrop), b = c.backtest, cov = b.coverage;
     const aciKey = Object.keys(cov).find((k) => k.startsWith("CQR + ACI")), pnl = b.pnl, rStar = b.break_even_interest_rate;
-    const rc = b.refusal_cost || {}, bw = b.breakdown_warning || { shocks: {} }, mae = b.mae || {}, ab = D.ablation_weather && D.ablation_weather[c.id];
+    const rc = b.refusal_cost || {}, bw = b.breakdown_warning || { shocks: {} }, mae = b.mae || {}, ab = D.ablation && D.ablation[c.id];
     const rowsP = [["Always trade", pnl["Always Trade"]], ["Trade if yesterday's spread paid", pnl["Yesterday's Spread"]], ["Follow Model Y", pnl["Model Y"]]];
     let h = `<div class="an-grid">`;
     h += `<div class="panel span2"><h2>Is the 90% range honest?</h2><p class="q">Share of real Colombo prices inside the range, over the previous 90 market days.</p>
@@ -328,18 +328,52 @@
       <p class="muted">The price of safety: ${pct(rc.red_days_profitable_share)} of red days would have made money (${rs(rc.profit_forgone_rs)} in total). Losses avoided: ${rs(rc.losses_avoided_rs)}.</p></div>`;
     h += `<div class="panel"><h2>At what interest rate does trading stop paying?</h2><p class="q">Share of losing days for a trader who always trades ${esc(c.name.toLowerCase())}, by loan cost per trip.</p>
       ${interestChart(b.by_interest_rate || [], rStar)}<p class="answer">${rStar > 0 ? `Trading stops paying on average above <strong>${(rStar * 100).toFixed(1)}%</strong> per trip.` : `<strong>Even at 0% interest</strong> this route lost money on average.`}</p></div>`;
+    const cmp = bw.comparison || {};
+    const shocks = Object.keys((cmp.detector || bw).shocks || {});
     h += `<div class="panel span2"><h2>When did the Dambulla–Colombo link break?</h2><p class="q">Share of days each month the breakdown detector flagged prices moving out of step.</p>
       ${barChart(c.breakdown_monthly, "Monthly share of days with a breakdown flag")}
-      <p class="muted">${Object.entries(bw.shocks || {}).map(([k, v]) => `${esc(k)}: ${v.flag_rate_30d_before == null ? "no bulletins before it" : pct(v.flag_rate_30d_before) + " of the 30 days before were flagged"}`).join(". ")}. Usual rate: ${pct(bw.base_flag_rate)}. On 2016–2019 data, forcing red on this flag cost more than it saved, so it is a warning, not a refusal.</p></div>`;
+      ${shocks.length && Object.keys(cmp).length ? `<div class="tbl-wrap" style="margin-top:10px"><table><thead><tr><th>In the 30 days before</th>${Object.keys(cmp).map((k) => `<th>${k === "detector" ? "Our detector" : "Correlation alone"}</th>`).join("")}</tr></thead><tbody>
+        ${shocks.map((s_) => `<tr><td>${esc(s_)}</td>${Object.values(cmp).map((v) => { const x = v.shocks[s_]; return `<td>${x.flag_rate_30d_before == null ? "no bulletins" : `${pct(x.flag_rate_30d_before)} of days (${x.lift_vs_usual ? x.lift_vs_usual.toFixed(1) + "× usual" : "–"})`}</td>`; }).join("")}</tr>`).join("")}
+        <tr><td>Usual share of days flagged</td>${Object.values(cmp).map((v) => `<td>${pct(v.base_flag_rate)}</td>`).join("")}</tr></tbody></table></div>` : ""}
+      <p class="muted" style="margin-top:6px">On 2016–2019 data, forcing red on this flag cost more than it saved, so it is a warning, not a refusal.</p></div>`;
     h += `<div class="panel"><h2>How close is the most likely price?</h2><p class="q">Average error of the median forecast, Rs. per kg.</p><div class="tbl-wrap"><table><tbody>
       ${Object.entries(mae).map(([k, v]) => `<tr class="${k.startsWith("LightGBM") ? "ours" : ""}"><td>${esc(k)}</td><td>${rs(v)}</td></tr>`).join("")}</tbody></table></div></div>`;
-    if (ab) { const w = ab["with weather"], n = ab["without weather"];
-      h += `<div class="panel"><h2>Does rainfall help?</h2><p class="q">Same model with and without Open-Meteo rain in the growing areas.</p><div class="tbl-wrap"><table><thead><tr><th></th><th>With rain</th><th>Without</th></tr></thead><tbody>
-        <tr><td>Coverage</td><td>${pct(w.coverage, 1)}</td><td>${pct(n.coverage, 1)}</td></tr><tr><td>Range width</td><td>${fmt(w.width_pct, 1)}%</td><td>${fmt(n.width_pct, 1)}%</td></tr>
-        <tr><td>Median error</td><td>${rs(w.mae_median)}</td><td>${rs(n.mae_median)}</td></tr></tbody></table></div></div>`; }
+    if (ab) {
+      const keys = Object.keys(ab);
+      h += `<div class="panel span2"><h2>Do the extra data sources help?</h2><p class="q">The same model with every feature, without Open-Meteo rainfall, and without the calendar (Poya, holidays), diesel and USD/LKR changes and the 2- and 14-day lags.</p><div class="tbl-wrap"><table><thead><tr><th></th>${keys.map((k) => `<th>${esc(k)}</th>`).join("")}</tr></thead><tbody>
+        <tr><td>Coverage</td>${keys.map((k) => `<td>${pct(ab[k].coverage, 1)}</td>`).join("")}</tr>
+        <tr><td>Range width (narrower is better)</td>${keys.map((k) => `<td>${fmt(ab[k].width_pct, 1)}%</td>`).join("")}</tr>
+        <tr><td>Median error</td>${keys.map((k) => `<td>${rs(ab[k].mae_median)}</td>`).join("")}</tr></tbody></table></div></div>`;
+    }
     $("#analysis").innerHTML = h + "</div>";
   }
   $("#an-crops").addEventListener("click", (e) => { const b = e.target.closest("button[data-crop]"); if (b) { anCrop = b.dataset.crop; renderAnalysis(); } });
+
+
+  /* ---------- Market-risk index (lenders, cooperatives, NGOs) ---------- */
+  function renderRisk() {
+    const R = D.risk_index;
+    if (!R) { $("#risk").innerHTML = "<p class='muted'>Not available yet.</p>"; return; }
+    const t = R.today, v = R.validation;
+    const lvlCls = { Low: "go", Normal: "go", Elevated: "caution", High: "stop" }[t.level] || "caution";
+    const W = 560, H = 200, pl = 40, pr = 10, pt = 10, pb = 26, data = R.monthly;
+    const hi = 80, x = (i) => pl + i * (W - pl - pr) / Math.max(1, data.length - 1), y = (val) => pt + (hi - val) / hi * (H - pt - pb);
+    let ch = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Monthly market-risk index since 2020">`;
+    [0, 20, 40, 60, 80].forEach((g) => { ch += `<line class="grid" x1="${pl}" x2="${W - pr}" y1="${y(g)}" y2="${y(g)}"/><text x="${pl - 6}" y="${y(g) + 4}" text-anchor="end">${g}</text>`; });
+    ch += `<path class="lossline" d="${data.map((d, i) => `${i ? "L" : "M"}${x(i)},${y(d[1])}`).join("")}"/>`;
+    data.forEach((d, i) => { if (d[0].endsWith("-01")) ch += `<text x="${x(i)}" y="${H - 6}" text-anchor="middle">${d[0].slice(0, 4)}</text>`; });
+    ch += "</svg>";
+    const maxLoss = Math.max(...v.quintiles.map((q) => q.share_of_trades_that_lost));
+    $("#risk").innerHTML = `<div class="an-grid">
+      <div class="panel"><h2>Today</h2><p class="q">Prices of ${dayLabel(t.date)}</p>
+        <p class="answer"><strong>${fmt(t.index, 1)}</strong> out of 100 &nbsp;<span class="count ${lvlCls}">${esc(t.level)}</span></p>
+        <p class="muted">${t.higher_than_share_of_days < 0.01 ? "One of the lowest readings since 2020." : t.higher_than_share_of_days > 0.99 ? "One of the highest readings since 2020." : `Higher than ${pct(t.higher_than_share_of_days)} of market days since 2020.`}</p>
+        <div class="tbl-wrap" style="margin-top:10px"><table><tbody>${Object.entries(t.crops).map(([k, val]) => `<tr><td>${esc((D.crops.find((c) => c.id === k) || { name: k }).name)}</td><td>${fmt(val, 0)}% chance of a loss</td></tr>`).join("")}</tbody></table></div></div>
+      <div class="panel"><h2>Does a high index mean real losses?</h2><p class="q">Market days since 2020 split into five equal groups by the index.</p>
+        <div class="qbars">${v.quintiles.map((q) => `<div class="qrow"><span>${fmt(q.index_from, 0)}–${fmt(q.index_to, 0)}</span><span class="qtrack"><span class="qfill" style="width:${Math.round(q.share_of_trades_that_lost / maxLoss * 100)}%"></span></span><span>${pct(q.share_of_trades_that_lost)}</span></div>`).join("")}</div>
+        <p class="muted" style="margin-top:8px">Share of crop trades that really lost money. On the riskiest fifth of days ${pct(v.quintiles[4].share_of_trades_that_lost)} lost, against ${pct(v.quintiles[0].share_of_trades_that_lost)} on the safest fifth.</p></div>
+      <div class="panel span2"><h2>How it moved since 2020</h2><p class="q">Monthly average. Use it to time lending, relief or warnings to members.</p>${ch}</div></div>`;
+  }
 
   /* ---------- About the data ---------- */
   function renderAbout() {
@@ -355,12 +389,14 @@
       <div class="panel"><h2>How a signal is made</h2><p class="q">Every morning at 06:00 and 10:00 Sri Lanka time</p><ol style="margin:0;padding-left:20px;display:grid;gap:6px">
         <li>New HARTI and CBSL bulletins and rainfall are downloaded.</li><li>LightGBM forecasts tomorrow's Colombo price at the 5th, 50th and 95th percentile.</li>
         <li>CQR + ACI calibration widens the range until about 9 in 10 real prices land inside it.</li><li>Your break-even is compared with the range: green, amber or red.</li></ol></div>
+      ${D.last_run ? `<div class="panel span2"><h2>Last update run</h2><p class="q">${esc(D.last_run.where || "Update")}, ${esc(D.last_run.started)} to ${esc(D.last_run.finished || "")} Sri Lanka time</p><div class="tbl-wrap"><table><tbody>
+        ${Object.entries(D.last_run.steps).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v.ok ? "OK" : "Failed: " + esc(v.error || "")}${v.new_bulletins ? `, ${v.new_bulletins.length} new` : ""}${v.new_reports ? `, ${v.new_reports.length} new` : ""}${v.filled && v.filled.length ? `, filled ${v.filled.join(", ")}` : ""}${v.latest ? `, latest ${esc(v.latest)}` : ""}</td></tr>`).join("")}</tbody></table></div></div>` : ""}
       <div class="panel"><h2>Gaps we don't hide</h2><p class="muted">The COVID-19 lockdown left no bulletins for 94 days in 2020, and most of February 2017 is missing on HARTI's server. We never fill these in. When prices are more than 4 days old, every crop turns red.</p>
         <p class="muted" style="margin-top:8px">Updated ${esc(D.generated_at.replace("T", " "))}. Code and full results: github.com/Jannahan/modelx</p></div></div>`;
   }
 
   /* ---------- Navigation ---------- */
-  const TITLES = { today: "Today's market", calc: "Calculator", market: "Live market", analysis: "Analysis", about: "About the data" };
+  const TITLES = { today: "Today's market", calc: "Calculator", market: "Live market", analysis: "Analysis", risk: "Market-risk index", about: "About the data" };
   function show(view) {
     if (!TITLES[view]) view = "today";
     if ($("#sheet").open) $("#sheet").close();
@@ -371,6 +407,7 @@
     if (view === "analysis") renderAnalysis();
     if (view === "market") renderMarket();
     if (view === "about") renderAbout();
+    if (view === "risk") renderRisk();
     window.scrollTo(0, 0);
   }
   const go = (v) => { history.replaceState(null, "", "#" + v); show(v); };

@@ -226,6 +226,14 @@ thead th { color: var(--muted); font-weight: 500; }
 tr.ours td { font-weight: 800; }
 .neg { color: var(--stop); }
 
+/* Risk index */
+.risk-link { margin-top: 14px; }
+.qbars { display: grid; gap: 8px; }
+.qrow { display: grid; grid-template-columns: 64px 1fr 52px; gap: 10px; align-items: center; font-size: 13.5px; font-weight: 600; }
+.qrow span:last-child { text-align: right; }
+.qtrack { height: 10px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.qfill { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--caution), var(--stop)); }
+
 /* Charts */
 .chart { width: 100%; height: auto; display: block; }
 .chart text { fill: var(--muted); font-size: 11px; }
