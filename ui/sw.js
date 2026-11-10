@@ -1,6 +1,6 @@
 // Offline support: the app shell is cached; prices are fetched fresh when there is signal
 // and the last downloaded prices are shown when there isn't (the app marks them stale by date).
-const CACHE = "modely-v2";
+const CACHE = "modely-v3";
 const SHELL = ["./", "index.html", "styles.css", "app.js", "icon.svg", "manifest.webmanifest", "data/app-data.js"];
 
 self.addEventListener("install", (e) => {

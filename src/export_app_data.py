@@ -138,8 +138,14 @@ def weather_now():
     d = d[d.index < today]
     last7 = d.tail(7)
     clim = d[d.index.month == today.month].rolling(7).sum().mean()
+    daily7 = [[i.strftime("%Y-%m-%d"), _r(v, 1)] for i, v in last7.items()]
+    temps = {}
+    for sid in ("NUWARA_ELIYA", "DAMBULLA"):
+        s = w[(w.station_id == sid) & (w.date < today)].sort_values("date").tail(1)
+        if len(s):
+            temps[sid] = {"max": _r(s.temp_max.iloc[0], 0), "min": _r(s.temp_min.iloc[0], 0)}
     return {"through": last7.index.max().strftime("%Y-%m-%d"), "rain_7d_mm": _r(last7.sum(), 0),
-            "typical_7d_mm": _r(clim, 0)}
+            "typical_7d_mm": _r(clim, 0), "daily": daily7, "temps": temps}
 
 
 def main():

@@ -1,12 +1,12 @@
 {
-  "name": "Model Y: Should I borrow today?",
+  "name": "Model Y · AgroShield",
   "short_name": "Model Y",
   "description": "Calibrated price ranges and borrow / buy less / don't borrow signals for vegetable traders on the Dambulla to Colombo route.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#1B2440",
-  "theme_color": "#1B2440",
+  "background_color": "#0F3B2C",
+  "theme_color": "#0F3B2C",
   "icons": [
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]
