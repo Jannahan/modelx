@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -101,7 +101,13 @@
     <symbol id="s-stop" viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="1.5" fill="currentColor"/></symbol>
   </svg>
 
-  <script src="data/app-data.js"></script>
-  <script src="app.js"></script>
+  <script>
+    // Load today's data first (never from a stale cache), then the app.
+    (function () {
+      var APP_VERSION = "2";
+      function add(src, done) { var s = document.createElement("script"); s.src = src; s.onload = s.onerror = done; document.body.appendChild(s); }
+      add("data/app-data.js?t=" + Math.floor(Date.now() / 300000), function () { add("app.js?v=" + APP_VERSION); });
+    })();
+  </script>
 </body>
 </html>
