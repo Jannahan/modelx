@@ -194,7 +194,7 @@ with tabs[0]:
         for crop, s in SUMMARIES.items():
             t = s["today"]
             B = break_even(t["wholesale"], r_frac, c_input)
-            sig, reason, show = decide(t["L"], t["M"], t["U"], B, t["m_bar"],
+            sig, reason, show = decide(t["L"], t["M"], t["U"], B, t["m_bar"], beta=t.get("beta", 3.0),
                                        breakdown=t["breakdown"], stale=t["stale"])
             card, badge, label = styles[sig]
             rng = f"Rs. {t['L']:.0f} – {t['U']:.0f}/kg" if show else "[HIDDEN]"
@@ -324,25 +324,31 @@ with tabs[3]:
     st.subheader("🛡️ Trader P&L backtest (walk-forward, real data)")
     crop4 = st.selectbox("Commodity", list(SUMMARIES), key="crop4")
     s4 = SUMMARIES[crop4]
-    p = s4["params"]
-    st.caption(f"{s4['period'][0]} → {s4['period'][1]} · {s4['eval_days']:,} days · "
-               f"{p['quota_kg']} kg/day · interest {p['r']:.1%} per trip · transport Rs. {p['C']}/kg · "
+    rule = st.radio("Decision thresholds", ["tuned", "plan"], horizontal=True,
+                    format_func=lambda k: {"tuned": "Tuned on 2016–2019 (used live)",
+                                           "plan": "Original plan values"}[k])
+    d4 = s4["decision"][rule]
+    th, p = d4["thresholds"], s4["params"]
+    fmt = lambda v, off: "off" if abs(v) >= 1e8 or v <= -2 else f"{v:g}"
+    st.caption(f"Test {s4['period'][0]} → {s4['period'][1]} · {s4['eval_days']:,} days · "
+               f"{p['quota_kg']} kg/day · interest {p['r']:.1%}/trip · transport Rs. {p['C']}/kg · "
+               f"β = {fmt(th['beta'],1)}, residual z > {fmt(th['z_limit'],1)}, corr < {fmt(th['corr_limit'],1)} · "
                "GREEN = full quota, AMBER = half, RED = none")
 
-    pnl = pd.DataFrame(s4["pnl"]).T
+    pnl = pd.DataFrame(d4["pnl"]).T
     pnl.columns = ["Total P&L (Rs.)", "Days traded", "Losing days", "Catastrophic (>30% loss)",
                    "Rs. lost in catastrophes", "Worst day (Rs.)"]
     st.dataframe(pnl.style.format({"Total P&L (Rs.)": "{:,.0f}", "Rs. lost in catastrophes": "{:,.0f}",
                                    "Worst day (Rs.)": "{:,.0f}"}), use_container_width=True)
 
-    k1, k2, k3 = st.columns(3)
-    rj = s4["refusal_justification_rate"]
-    k1.metric("Refusal justification", f"{rj:.1%}" if rj is not None else "–",
-              help="Share of RED days that would really have lost money")
-    k2.metric("Loss rate on an average day", f"{s4['base_loss_rate']:.1%}")
-    k3.metric("Pinball loss, median (Rs.)", f"{s4['pinball']['0.5']:.1f}")
+    k1, k2, k3, k4 = st.columns(4)
+    rj, lt = d4["refusal_justification_rate"], d4["loss_rate_on_traded_days"]
+    k1.metric("RED days that would have lost", f"{rj:.1%}" if rj is not None else "–")
+    k2.metric("Loss rate on days it trades", f"{lt:.1%}" if lt is not None else "–")
+    k3.metric("Loss rate if you always trade", f"{d4['base_loss_rate']:.1%}")
+    k4.metric("Breakdown flagged", f"{d4['breakdown_rate']:.0%} of days")
 
-    sby = pd.DataFrame(s4["signals_by_year"]).T.fillna(0)
+    sby = pd.DataFrame(d4["signals_by_year"]).T.fillna(0)
     fig_sig = go.Figure()
     for sig, colr in [("GREEN", "#16A34A"), ("AMBER", "#D97706"), ("RED", "#DC2626")]:
         if sig in sby:
