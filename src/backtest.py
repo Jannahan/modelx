@@ -28,6 +28,7 @@ from cqr import fit_quantile_models
 from aci import run_aci
 from breakdown import detect_breakdowns
 from decision import break_even, decide
+from history import CROPS, load_corridor
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RESULTS = os.path.join(ROOT, "results")
@@ -35,7 +36,9 @@ R, C, QUOTA = 0.003, 6.0, 100          # interest per trip, transport Rs/kg, kg 
 ALPHA, GAMMA = 0.10, 0.02
 FORECAST_START = "2016-07-01"
 TEST_START = "2020-01-01"
-COMMODITIES = ("BEANS", "CARROT", "TOMATO", "LEEKS")
+COMMODITIES = CROPS
+SHOCKS = {"2020 COVID lockdown": "2020-03-20", "2022 fuel crisis": "2022-06-15"}
+INTEREST_GRID = [0.0, 0.003, 0.01, 0.02, 0.03, 0.05, 0.10]
 
 PLAN = {"beta": 3.0, "z_limit": 2.5, "corr_limit": 0.35}               # plan Section 3.4/3.5
 GRID = {"beta": [3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 1e9],                   # 1e9 = width rule off
@@ -52,9 +55,7 @@ def load(commodity, synthetic):
     if synthetic:
         df = pd.read_csv(os.path.join(ROOT, "data", "fake_market.csv"), parse_dates=["date"])
         return df[["date", "wholesale", "retail"]]
-    from build_real_features import build_corridor_dataset
-    df = build_corridor_dataset(commodity=commodity)
-    return df[["date", "wholesale", "retail", "retail_market"]]
+    return load_corridor(commodity)[["date", "wholesale", "retail", "retail_market"]]
 
 
 def bd_col(z, c):
@@ -64,7 +65,7 @@ def bd_col(z, c):
 # ------------------------------------------------------------------------------------------
 # 1. Forecasts (expensive, run once per crop)
 # ------------------------------------------------------------------------------------------
-def forecast(commodity="BEANS", synthetic=False):
+def forecast(commodity="BEANS", synthetic=False, use_weather=True, with_arima=True):
     df = load(commodity, synthetic).sort_values("date").reset_index(drop=True)
     w, r = df.wholesale, df.retail
 
@@ -76,6 +77,9 @@ def forecast(commodity="BEANS", synthetic=False):
         "dow": df.date.dt.dayofweek,
         "gap_days": df.date.diff().dt.days,     # long gaps = holidays / closures
     })
+    if use_weather and not synthetic:           # rain in growing areas, ending yesterday
+        from weather import rain_features
+        X = pd.concat([X, rain_features(df.date)], axis=1)
     df["sell_price"] = r.shift(-1)              # P^r_{t+1}: what we forecast
     y_ratio = df.sell_price / w
     df["m_bar"] = (r - w.shift(1)).rolling(90, min_periods=30).mean().shift(1)
@@ -86,6 +90,7 @@ def forecast(commodity="BEANS", synthetic=False):
         df[bd_col(z, c)] = out["breakdown"].shift(1, fill_value=False)
 
     feat_ok = X.drop(columns="gap_days").notna().all(axis=1) & df.m_bar.notna()
+    df["bd_plan"] = df[bd_col(PLAN["z_limit"], PLAN["corr_limit"])]   # detector at plan settings
     keep = feat_ok & (df.sell_price.notna() | (df.index == len(df) - 1))   # keep last row: "today"
     df, X, y_ratio = (d[keep].reset_index(drop=True) for d in (df, X, y_ratio))
 
@@ -104,7 +109,7 @@ def forecast(commodity="BEANS", synthetic=False):
                          "naive_lo": nlo * wt[j], "naive_hi": nhi * wt[j]})
     res = pd.DataFrame(rows).set_index("i").join(df)
     res["y"] = res.sell_price
-    res["arima_lo"], res["arima_hi"] = arima_intervals(df, res.index)
+    res["arima_lo"], res["arima_hi"] = arima_intervals(df, res.index) if with_arima else (np.nan, np.nan)
     res["cqr_lo"], res["cqr_hi"], _ = run_aci(res, alpha=ALPHA, gamma=0.0)
     res["L"], res["U"], res["alpha_t"] = run_aci(res, alpha=ALPHA, gamma=GAMMA)
     res = res.dropna(subset=["L"]).reset_index(drop=True)
@@ -143,10 +148,10 @@ def apply_rule(res, beta, z_limit, corr_limit):
     return pd.Series([o[0] for o in out], index=res.index), pd.Series([o[1] for o in out], index=res.index), bd
 
 
-def pnl_metrics(ev, signal):
-    profit_kg = ev.sell_price - ev.wholesale - C - R * ev.wholesale     # Equation (1)
-    outlay_kg = ev.wholesale * (1 + R) + C
-    spread_ok = (ev.retail.shift(1) - ev.wholesale.shift(1)) > C + R * ev.wholesale.shift(1)
+def pnl_metrics(ev, signal, r=R):
+    profit_kg = ev.sell_price - ev.wholesale - C - r * ev.wholesale     # Equation (1)
+    outlay_kg = ev.wholesale * (1 + r) + C
+    spread_ok = (ev.retail.shift(1) - ev.wholesale.shift(1)) > C + r * ev.wholesale.shift(1)
     strategies = {
         "Always Trade": pd.Series(QUOTA, index=ev.index),
         "Yesterday's Spread": pd.Series(np.where(spread_ok, QUOTA, 0), index=ev.index),
@@ -184,8 +189,61 @@ def tune(all_res):
     os.makedirs(RESULTS, exist_ok=True)
     scores.to_csv(os.path.join(RESULTS, "tuning_grid.csv"), index=False)
     best = scores.iloc[0]
-    return {"beta": float(best.beta), "z_limit": float(best.z_limit), "corr_limit": float(best.corr_limit)}
+    tuned = {"beta": float(best.beta), "z_limit": float(best.z_limit), "corr_limit": float(best.corr_limit)}
+    with open(os.path.join(RESULTS, "thresholds.json"), "w") as f:
+        json.dump({"tuned": tuned, "plan": PLAN, "tuned_on": [FORECAST_START, "2019-12-31"]}, f, indent=2)
+    return tuned
 
+
+
+def extra_measures(res, ev, tuned):
+    """Proposal Table 4 measures beyond coverage and P&L."""
+    out = {}
+    # Point accuracy: median vs naive (last Colombo price known at 06:00) and seasonal naive
+    naive = res.retail.shift(1).loc[ev.index]
+    target_date = res.date.shift(-1)
+    hist = res[["date", "retail"]].rename(columns={"date": "d7", "retail": "seasonal"})
+    look = pd.DataFrame({"d7": (target_date - pd.Timedelta(days=7)).loc[ev.index]}).dropna()
+    seas = pd.merge_asof(look.sort_values("d7"), hist.sort_values("d7"), on="d7").set_index(look.sort_values("d7").index)
+    out["point_accuracy_mae"] = {
+        "LightGBM median": float((ev.q_med - ev.y).abs().mean()),
+        "Naive (last Colombo price)": float((naive - ev.y).abs().mean()),
+        "Seasonal naive (same day last week)": float((seas.seasonal.reindex(ev.index) - ev.y).abs().mean()),
+    }
+    # Loss frequency and simulated profit at several interest rates
+    rows = []
+    for r in INTEREST_GRID:
+        e = ev.assign(B=break_even(ev.wholesale, r, C))
+        sig, _, _ = apply_rule(e, **tuned)
+        t, x = pnl_metrics(e, sig, r=r)
+        rows.append({"r": r, "always_loss_rate": x["base_loss_rate"],
+                     "always_pnl": t["Always Trade"]["total_pnl"], "model_y_pnl": t["Model Y"]["total_pnl"],
+                     "model_y_days": t["Model Y"]["days_traded"], "always_catastrophic": t["Always Trade"]["catastrophic"],
+                     "model_y_catastrophic": t["Model Y"]["catastrophic"]})
+    out["by_interest_rate"] = rows
+    gross = float((ev.sell_price - ev.wholesale - C).mean())
+    out["break_even_interest_rate"] = gross / float(ev.wholesale.mean()) if gross > 0 else 0.0
+    # Refusal cost: what RED gives up
+    sig = res.loc[ev.index, "signal_tuned"]
+    profit = (ev.sell_price - ev.wholesale - C - R * ev.wholesale) * QUOTA
+    red = sig == "RED"
+    out["refusal_cost"] = {"red_days": int(red.sum()),
+                           "red_days_profitable_share": float((profit[red] > 0).mean()) if red.any() else None,
+                           "profit_forgone_rs": float(profit[red].clip(lower=0).sum()),
+                           "losses_avoided_rs": float(-profit[red].clip(upper=0).sum())}
+    # Breakdown warning before known shocks (detector at plan settings)
+    base = float(res.bd_plan.mean())
+    warn = {}
+    for name, d in SHOCKS.items():
+        pre = res[(res.date < d) & (res.date >= pd.Timestamp(d) - pd.Timedelta(days=30))]
+        flagged = pre[pre.bd_plan]
+        warn[name] = {"flag_rate_30d_before": float(pre.bd_plan.mean()) if len(pre) else None,
+                      "first_flag_days_before": int((pd.Timestamp(d) - flagged.date.min()).days) if len(flagged) else None}
+    out["breakdown_warning"] = {"base_flag_rate": base, "shocks": warn}
+    # Recent honesty: share of the last 30 real prices inside their range
+    last = ev.tail(30)
+    out["recent_hit_rate_30d"] = float(((last.y >= last.L) & (last.y <= last.U)).mean())
+    return out
 
 # ------------------------------------------------------------------------------------------
 # 3. Report
@@ -216,6 +274,8 @@ def summarise(res, name, tuned, synthetic=False):
         res.loc[ev.index, f"signal_{k}"] = sig
         res.loc[ev.index, f"reason_{k}"] = reason
 
+    extras = extra_measures(res, ev, tuned)
+
     # "today" = the last bulletin row, decided with the tuned thresholds
     today = res.iloc[-1]
     t_sig, t_reason, t_bd = apply_rule(res.iloc[[-1]], **tuned)
@@ -232,6 +292,7 @@ def summarise(res, name, tuned, synthetic=False):
         "coverage_by_year": {k: ev.assign(c=(ev.y >= ev[lo]) & (ev.y <= ev[hi])).groupby("year").c.mean()
                              .round(3).to_dict() for k, (lo, hi) in intervals.items()},
         "decision": decisions,
+        **extras,
         # kept at top level for the dashboard: tuned rule
         "pnl": decisions["tuned"]["pnl"], "signals": decisions["tuned"]["signals"],
         "signals_by_year": decisions["tuned"]["signals_by_year"],
@@ -242,10 +303,11 @@ def summarise(res, name, tuned, synthetic=False):
                   "break_even": float(today.B), "L": float(today.L), "M": float(today.q_med),
                   "U": float(today.U), "signal": t_sig.iloc[0], "reason": t_reason.iloc[0],
                   "m_bar": float(today.m_bar), "stale": bool(today.stale),
-                  "breakdown": bool(t_bd.iloc[0]), "beta": tuned["beta"]},
+                  "breakdown": bool(t_bd.iloc[0]), "breakdown_advisory": bool(today.bd_plan),
+                  "beta": tuned["beta"]},
     }
     tag = name.lower()
-    keep_cols = [c for c in res.columns if not c.startswith("bd_")]
+    keep_cols = [c for c in res.columns if not c.startswith("bd_") or c == "bd_plan"]
     res[keep_cols].to_csv(os.path.join(RESULTS, f"backtest_{tag}.csv"), index=False)
     with open(os.path.join(RESULTS, f"summary_{tag}.json"), "w") as f:
         json.dump(summary, f, indent=2, default=str)
@@ -285,5 +347,30 @@ if __name__ == "__main__":
             all_res = dict(zip(crops, pool.map(forecast, crops)))
         tuned = tune(all_res)
         print(f"Tuned on {FORECAST_START}..2019-12-31 (all crops pooled): {tuned}  | plan: {PLAN}")
+        summaries = {}
         for c in crops:
-            print_summary(summarise(all_res[c], c, tuned))
+            summaries[c] = summarise(all_res[c], c, tuned)
+            print_summary(summaries[c])
+
+        # Ablation: same pipeline without the Open-Meteo rainfall features
+        from functools import partial
+        with ProcessPoolExecutor(max_workers=len(crops)) as pool:
+            no_w = dict(zip(crops, pool.map(partial(forecast, use_weather=False, with_arima=False), crops)))
+        ab = {}
+        for c in crops:
+            rows = {}
+            for label, res in (("with weather", all_res[c]), ("without weather", no_w[c])):
+                ev = res[(res.date >= TEST_START) & res.y.notna()]
+                rows[label] = {"coverage": float(((ev.y >= ev.L) & (ev.y <= ev.U)).mean()),
+                               "width_pct": float(((ev.U - ev.L) / ev.y).mean() * 100),
+                               "pinball_median": pinball(ev.y, ev.q_med, 0.5),
+                               "mae_median": float((ev.q_med - ev.y).abs().mean()),
+                               "raw_coverage": float(((ev.y >= ev.q_lo) & (ev.y <= ev.q_hi)).mean())}
+            ab[c] = rows
+        with open(os.path.join(RESULTS, "ablation_weather.json"), "w") as f:
+            json.dump(ab, f, indent=2)
+        print("\nWeather ablation (test period):")
+        for c, rows in ab.items():
+            w, n = rows["with weather"], rows["without weather"]
+            print(f"{c:<13} width {w['width_pct']:.1f}% vs {n['width_pct']:.1f}% | MAE {w['mae_median']:.1f} vs "
+                  f"{n['mae_median']:.1f} | coverage {w['coverage']:.3f} vs {n['coverage']:.3f}")

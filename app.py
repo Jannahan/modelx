@@ -143,7 +143,7 @@ sys.path.append(os.path.join(APP_DIR, "src"))
 from decision import break_even, decide
 
 RESULTS_DIR = os.path.join(APP_DIR, "results")
-CROPS = ["BEANS", "CARROT", "TOMATO", "LEEKS"]
+CROPS = ["BEANS", "CARROT", "TOMATO", "LEEKS", "GREEN_CHILLI"]
 
 
 @st.cache_data
@@ -240,7 +240,7 @@ with tabs[1]:
 
         st.markdown("---")
 
-        q_comm = st.selectbox("Filter Commodity", ["BEANS", "CARROT", "TOMATO", "LEEKS", "CABBAGE", "BEET_ROOT"], index=0)
+        q_comm = st.selectbox("Filter Commodity", ["BEANS", "CARROT", "TOMATO", "LEEKS", "GREEN_CHILLI", "CABBAGE", "BEET_ROOT"], index=0)
         
         query = """
             SELECT date, market_id, price_low, price_high, price_mid, is_traded

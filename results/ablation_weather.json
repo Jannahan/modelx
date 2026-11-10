@@ -1,0 +1,82 @@
+{
+  "BEANS": {
+    "with weather": {
+      "coverage": 0.900050735667174,
+      "width_pct": 65.62749057006738,
+      "pinball_median": 23.982354575150442,
+      "mae_median": 47.964709150300884,
+      "raw_coverage": 0.7853881278538812
+    },
+    "without weather": {
+      "coverage": 0.9005580923389143,
+      "width_pct": 67.93858845982318,
+      "pinball_median": 24.588311562735203,
+      "mae_median": 49.17662312547041,
+      "raw_coverage": 0.7945205479452054
+    }
+  },
+  "CARROT": {
+    "with weather": {
+      "coverage": 0.8990360223236935,
+      "width_pct": 56.895627586699845,
+      "pinball_median": 16.468752387332085,
+      "mae_median": 32.93750477466417,
+      "raw_coverage": 0.7747336377473364
+    },
+    "without weather": {
+      "coverage": 0.8985286656519533,
+      "width_pct": 57.46868563342855,
+      "pinball_median": 16.529484707552985,
+      "mae_median": 33.05896941510597,
+      "raw_coverage": 0.7899543378995434
+    }
+  },
+  "TOMATO": {
+    "with weather": {
+      "coverage": 0.9015728056823947,
+      "width_pct": 62.06508544529,
+      "pinball_median": 14.6480514313007,
+      "mae_median": 29.2961028626014,
+      "raw_coverage": 0.7813292744799594
+    },
+    "without weather": {
+      "coverage": 0.8995433789954338,
+      "width_pct": 63.46041896478468,
+      "pinball_median": 14.919475019273776,
+      "mae_median": 29.83895003854755,
+      "raw_coverage": 0.7904616945712836
+    }
+  },
+  "LEEKS": {
+    "with weather": {
+      "coverage": 0.8995433789954338,
+      "width_pct": 64.18013476833589,
+      "pinball_median": 12.409965302118259,
+      "mae_median": 24.819930604236518,
+      "raw_coverage": 0.76103500761035
+    },
+    "without weather": {
+      "coverage": 0.8990360223236935,
+      "width_pct": 63.09190073359493,
+      "pinball_median": 12.497510873142541,
+      "mae_median": 24.995021746285083,
+      "raw_coverage": 0.763064434297311
+    }
+  },
+  "GREEN_CHILLI": {
+    "with weather": {
+      "coverage": 0.8995433789954338,
+      "width_pct": 71.47657763481944,
+      "pinball_median": 28.596738914389917,
+      "mae_median": 57.193477828779834,
+      "raw_coverage": 0.7803145611364789
+    },
+    "without weather": {
+      "coverage": 0.9005580923389143,
+      "width_pct": 71.33809182537668,
+      "pinball_median": 28.58631402494533,
+      "mae_median": 57.17262804989066,
+      "raw_coverage": 0.7777777777777778
+    }
+  }
+}
