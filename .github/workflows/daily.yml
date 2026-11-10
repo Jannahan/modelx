@@ -1,0 +1,46 @@
+name: Daily live run
+
+# Proposal 5.3: check for new bulletins every morning at about 06:00 and again at 10:00 (Sri Lanka, UTC+5:30).
+on:
+  schedule:
+    - cron: "30 0 * * *"    # 06:00 Asia/Colombo
+    - cron: "30 4 * * *"    # 10:00 Asia/Colombo
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-live-run
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-daily.txt
+
+      - name: Install
+        run: pip install -r requirements-daily.txt
+
+      - name: Fetch new bulletins, forecast, rebuild app data
+        run: python src/daily_update.py
+
+      - name: Commit if anything changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/history results/live_*.csv ui/data/app-data.js
+          if git diff --cached --quiet; then
+            echo "No new data."
+          else
+            git commit -m "data: daily live run $(TZ=Asia/Colombo date +'%Y-%m-%d %H:%M')"
+            git push
+          fi
