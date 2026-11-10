@@ -21,7 +21,7 @@ RES = os.path.join(ROOT, "results")
 HIST = os.path.join(ROOT, "data", "history")
 OUT = os.path.join(ROOT, "ui", "data", "app-data.js")
 NAMES = {"BEANS": "Beans", "CARROT": "Carrot", "TOMATO": "Tomato", "LEEKS": "Leeks", "GREEN_CHILLI": "Green chilli"}
-COLOMBO_NAME = {"PELIYAGODA": "Peliyagoda", "PETTAH": "Pettah"}
+COLOMBO_NAME = {"PELIYAGODA": "Peliyagoda", "PETTAH": "Pettah", "PETTAH (CBSL)": "Pettah"}
 SL = timezone(timedelta(hours=5, minutes=30))
 
 
@@ -82,6 +82,7 @@ def crop_block(crop, thresholds):
         "id": crop, "name": NAMES[crop],
         "colombo_market": COLOMBO_NAME.get(str(hist.retail_market.iloc[-1]), "Colombo"),
         "today": {"date": t.date.strftime("%Y-%m-%d"), "dambulla": _r(t.wholesale, 0),
+                  "source": "CBSL" if str(hist.retail_market.iloc[-1]).endswith("(CBSL)") else "HARTI",
                   "L": _r(t.L, 0), "M": _r(t.q_med, 0), "U": _r(t.U, 0), "m_bar": _r(t.m_bar, 1),
                   "alpha_t": _r(t.alpha_t, 3), "gap_days": int(src.date.diff().dt.days.iloc[-1]),
                   "breakdown_advisory": bool(t.get("bd_plan", False))},
@@ -162,7 +163,9 @@ def main():
         "rule": {"beta": th["tuned"]["beta"], "stale_after_days": 4, "alpha": 0.10},
         "weather": weather_now(),
         "crops": crops,
-        "ablation_weather": _read_json("ablation_weather.json"),
+        "ablation": _read_json("ablation_features.json") or _read_json("ablation_weather.json"),
+        "risk_index": _read_json("risk_index.json"),
+        "last_run": _read_json("last_run.json"),
         "data_quality": {"bulletins": dq.get("bulletins_total"), "price_rows": dq.get("price_rows"),
                          "missing_404": len(dq.get("missing_bulletins_404", [])),
                          "jumps_flagged": dq.get("gate2_jumps_over_60pct_core_corridor"),

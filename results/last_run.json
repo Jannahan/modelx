@@ -1,0 +1,51 @@
+{
+  "started": "2026-11-11 03:59",
+  "where": "local run",
+  "steps": {
+    "HARTI bulletins": {
+      "ok": true,
+      "listed": 3141,
+      "new_bulletins": [],
+      "latest": "2026-11-09"
+    },
+    "CBSL reports": {
+      "ok": true,
+      "new_reports": [],
+      "latest": "2026-11-10"
+    },
+    "CBSL fallback": {
+      "ok": true,
+      "filled": [
+        "2026-11-10"
+      ]
+    },
+    "Open-Meteo rainfall": {
+      "ok": true,
+      "latest": "2026-11-11"
+    },
+    "USD/LKR": {
+      "ok": true,
+      "latest": "2026-11-10",
+      "usd_lkr": 332.5588
+    },
+    "Forecasts": {
+      "ok": true,
+      "forecast_dates": {
+        "BEANS": "2026-11-10",
+        "CARROT": "2026-11-10",
+        "TOMATO": "2026-11-10",
+        "LEEKS": "2026-11-09",
+        "GREEN_CHILLI": "2026-11-10"
+      }
+    },
+    "Market-risk index": {
+      "ok": true,
+      "today": 24.7
+    },
+    "Web app data": {
+      "ok": true
+    }
+  },
+  "finished": "2026-11-11 04:05",
+  "all_ok": true
+}
