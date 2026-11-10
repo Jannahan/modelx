@@ -37,12 +37,21 @@ class TestHartiParser(unittest.TestCase):
         self.assertEqual(resolve_commodity("White Cabbage"), "CABBAGE")
         self.assertEqual(resolve_commodity("Green Chilli"), "GREEN_CHILLI")
 
+    def test_other_beans_are_not_beans(self):
+        self.assertIsNone(resolve_commodity("Long Beans"))
+        self.assertIsNone(resolve_commodity("Dambala (Wing Beans)"))
+
     def test_resolve_market(self):
         self.assertEqual(resolve_market("Peliyagoda Market"), "PELIYAGODA")
         self.assertEqual(resolve_market("Manning Market"), "PELIYAGODA")
         self.assertEqual(resolve_market("Dambulla DEC"), "DAMBULLA")
         self.assertEqual(resolve_market("Meegoda"), "MEEGODA")
         self.assertEqual(resolve_market("Keppetipola Market"), "KEPPETIPOLA")
+        self.assertEqual(resolve_market("Kappetipola Market"), "KEPPETIPOLA")
+        self.assertEqual(resolve_market("Pettah Market"), "PETTAH")
+        self.assertEqual(resolve_market("Megoda Market"), "MEEGODA")
+        self.assertEqual(resolve_market("Dambulla h"), "DAMBULLA")
+        self.assertEqual(resolve_market("ambuththega"), "THAMBUTHTHEGAMA")
 
 if __name__ == "__main__":
     unittest.main()

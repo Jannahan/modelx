@@ -4,6 +4,12 @@ import fitz
 import pandas as pd
 from db import get_connection
 
+# Row labels that contain a commodity keyword but are a DIFFERENT product.
+# e.g. "Long Beans" and "Dambala (Wing Beans)" must never be read as BEANS.
+COMMODITY_EXCLUDES = {
+    'BEANS': ['long', 'wing', 'dambala', 'soya'],
+}
+
 COMMODITY_ALIASES = {
     'BEANS': ['bean', 'bochi'],
     'CARROT': ['carrot'],
@@ -23,25 +29,30 @@ COMMODITY_ALIASES = {
 }
 
 MARKET_ALIASES = {
+    # Pre-2021 bulletins list the Colombo terminal as "Pettah Market"; after the
+    # Manning Market moved it is listed as "Peliyagoda Market".
     'PELIYAGODA': ['peliyagoda', 'manning'],
+    'PETTAH': ['pettah', 'petha'],   # "Petha Market" typo seen in Aug 2021
     'DAMBULLA': ['dambulla', 'ddec'],
     'KANDY': ['kandy'],
-    'MEEGODA': ['meegoda'],
-    'KEPPETIPOLA': ['keppetipola'],
+    'MEEGODA': ['meegoda', 'megoda'],
+    'KEPPETIPOLA': ['petipola'],          # "Keppetipola", "Kappetipola", "mKappetipola"
     'NUWARA_ELIYA': ['nuwaraeliya', "n'eliya", 'nuwara eliya'],
     'BANDARAWELA': ['bandarawela'],
-    'THAMBUTHTHEGAMA': ['thambuththegama', 'hambuththegam'],
-    'VEYANGODA': ['veyangoda'],
+    'THAMBUTHTHEGAMA': ['mbuththeg'],     # "Thambuththegama", "hambuththegam", "ambuththega"
+    'VEYANGODA': ['veyangod'],
     'NOROCHCHOLE': ['norochchole']
 }
 
 def resolve_commodity(text):
     if not text:
         return None
-    t = text.lower()
+    t = str(text).lower()
     for comm_id, aliases in COMMODITY_ALIASES.items():
         for alias in aliases:
             if alias in t:
+                if any(x in t for x in COMMODITY_EXCLUDES.get(comm_id, [])):
+                    return None
                 return comm_id
     return None
 
@@ -119,31 +130,59 @@ def parse_harti_pdf(pdf_path, date_str):
     if not target_table:
         return records
 
-    # Parse header row for markets
+    # Which column holds the item name? Layout A: column 0.
+    # Layout B (some 2022 bulletins): column 0 is a row number, column 1 the item.
+    name_col = 0
+    for row in target_table[:8]:
+        if len(row) > 1 and resolve_commodity(row[1]) and not resolve_commodity(row[0]):
+            name_col = 1
+            break
+
+    # Header rows = everything before the first commodity row
+    header_end = len(target_table)
+    for r_idx, row in enumerate(target_table):
+        if row and len(row) > name_col and resolve_commodity(row[name_col]):
+            header_end = r_idx
+            break
+    header_rows = target_table[:min(header_end, 6)]
+
     market_cols = {}
-    for r_idx in range(min(4, len(target_table))):
-        row = target_table[r_idx]
+    for row in header_rows:
         for c_idx, cell in enumerate(row):
+            if c_idx <= name_col:
+                continue
             mkt = resolve_market(cell)
-            if mkt and c_idx not in market_cols:
+            if mkt and c_idx not in market_cols and mkt not in market_cols.values():
                 market_cols[c_idx] = mkt
 
     if not market_cols:
         return records
 
-    # Parse commodity price rows
-    for row in target_table:
-        if not row or not row[0]:
+    # Layout B splits each market into separate "Min" and "Max" columns.
+    minmax = any(
+        any(str(c or '').strip().lower() == 'min' for c in row) for row in header_rows
+    )
+
+    # Parse commodity price rows. Only the FIRST row per commodity is kept:
+    # it is the main variety (e.g. "Cabbage (N'Eliya)" before "Cabbage (Kandy)").
+    seen = set()
+    for row in target_table[header_end:]:
+        if not row or len(row) <= name_col or not row[name_col]:
             continue
-        first_cell = str(row[0]).strip()
-        comm_id = resolve_commodity(first_cell)
-        if not comm_id:
+        comm_id = resolve_commodity(str(row[name_col]).strip())
+        if not comm_id or comm_id in seen:
             continue
+        seen.add(comm_id)
 
         for c_idx, mkt_id in market_cols.items():
             if c_idx >= len(row):
                 continue
-            cell_val = row[c_idx]
+            if minmax:
+                lo_txt = str(row[c_idx] or '').strip()
+                hi_txt = str(row[c_idx + 1] or '').strip() if c_idx + 1 < len(row) else ''
+                cell_val = f"{lo_txt} - {hi_txt}" if lo_txt and hi_txt else (lo_txt or hi_txt)
+            else:
+                cell_val = row[c_idx]
             lo, hi, mid, traded = parse_price_range(cell_val)
             records.append({
                 'date': date_str,
@@ -158,76 +197,97 @@ def parse_harti_pdf(pdf_path, date_str):
 
     return records
 
-def parse_and_store_bulletin(bulletin_id, pdf_path, date_str, conn):
-    """Parse one bulletin and update prices.db."""
+def store_bulletin_records(bulletin_id, date_str, records, conn, error=None):
+    """Write one bulletin's parsed rows (or its failure) to prices.db."""
     cur = conn.cursor()
-    try:
-        records = parse_harti_pdf(pdf_path, date_str)
-        if not records:
-            cur.execute("""
-                UPDATE bulletins 
-                SET parse_status = 'EMPTY', num_rows = 0, error_message = 'No vegetable table identified', updated_at = CURRENT_TIMESTAMP
-                WHERE bulletin_id = ?
-            """, (bulletin_id,))
-            conn.commit()
-            return 0
-
-        # Insert records into wholesale_prices
-        for rec in records:
-            cur.execute("""
-                INSERT OR REPLACE INTO wholesale_prices 
-                (date, commodity_id, market_id, price_low, price_high, price_mid, is_traded, source)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (rec['date'], rec['commodity_id'], rec['market_id'], 
-                  rec['price_low'], rec['price_high'], rec['price_mid'], 
-                  rec['is_traded'], rec['source']))
-
+    if error is not None:
         cur.execute("""
-            UPDATE bulletins 
-            SET parse_status = 'PARSED', num_rows = ?, error_message = NULL, updated_at = CURRENT_TIMESTAMP
-            WHERE bulletin_id = ?
-        """, (len(records), bulletin_id))
-        conn.commit()
-        return len(records)
-    except Exception as e:
-        cur.execute("""
-            UPDATE bulletins 
+            UPDATE bulletins
             SET parse_status = 'FAILED', error_message = ?, updated_at = CURRENT_TIMESTAMP
             WHERE bulletin_id = ?
-        """, (str(e), bulletin_id))
+        """, (error, bulletin_id))
+        conn.commit()
+        return 0
+    if not records:
+        cur.execute("""
+            UPDATE bulletins
+            SET parse_status = 'EMPTY', num_rows = 0, error_message = 'No vegetable table identified', updated_at = CURRENT_TIMESTAMP
+            WHERE bulletin_id = ?
+        """, (bulletin_id,))
         conn.commit()
         return 0
 
-def run_parser_batch(limit=None):
-    """Parse all downloaded bulletins that are pending parsing."""
+    # Replace any rows from an earlier parse of this date
+    cur.execute("DELETE FROM wholesale_prices WHERE date = ? AND source = 'HARTI'", (date_str,))
+    cur.executemany("""
+        INSERT OR REPLACE INTO wholesale_prices
+        (date, commodity_id, market_id, price_low, price_high, price_mid, is_traded, source)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, [(r['date'], r['commodity_id'], r['market_id'], r['price_low'], r['price_high'],
+           r['price_mid'], r['is_traded'], r['source']) for r in records])
+    cur.execute("""
+        UPDATE bulletins
+        SET parse_status = 'PARSED', num_rows = ?, error_message = NULL, updated_at = CURRENT_TIMESTAMP
+        WHERE bulletin_id = ?
+    """, (len(records), bulletin_id))
+    conn.commit()
+    return len(records)
+
+
+def _parse_job(job):
+    """Worker-process entry point: parse one PDF, never raise."""
+    b_id, path, dt = job
+    try:
+        return b_id, dt, parse_harti_pdf(path, dt), None
+    except Exception as e:
+        return b_id, dt, [], f"{type(e).__name__}: {e}"
+
+
+def parse_and_store_bulletin(bulletin_id, pdf_path, date_str, conn):
+    """Parse one bulletin and update prices.db."""
+    _, _, records, err = _parse_job((bulletin_id, pdf_path, date_str))
+    return store_bulletin_records(bulletin_id, date_str, records, conn, err)
+
+
+def run_parser_batch(limit=None, workers=1, reparse=False):
+    """Parse downloaded bulletins. reparse=True also redoes ones already PARSED."""
     conn = get_connection()
     cur = conn.cursor()
 
-    query = """
-        SELECT bulletin_id, local_path, date 
-        FROM bulletins 
-        WHERE download_status = 'DOWNLOADED' AND parse_status != 'PARSED'
-        ORDER BY date DESC
-    """
+    query = "SELECT bulletin_id, local_path, date FROM bulletins WHERE download_status = 'DOWNLOADED'"
+    if not reparse:
+        query += " AND parse_status != 'PARSED'"
+    query += " ORDER BY date DESC"
     if limit:
-        query += f" LIMIT {limit}"
+        query += f" LIMIT {int(limit)}"
 
-    cur.execute(query)
-    rows = cur.fetchall()
-    print(f"Found {len(rows)} downloaded bulletins pending parsing.")
+    rows = [r for r in cur.execute(query).fetchall() if r[1] and os.path.exists(r[1])]
+    print(f"Found {len(rows)} downloaded bulletins to parse (workers={workers}).")
 
     total_records = 0
-    parsed_files = 0
-    for b_id, path, dt in rows:
-        if not os.path.exists(path):
-            continue
-        n = parse_and_store_bulletin(b_id, path, dt, conn)
-        total_records += n
-        parsed_files += 1
-        print(f"Parsed {dt}: {n} price observations stored.")
+    if workers > 1:
+        from concurrent.futures import ProcessPoolExecutor
+        with ProcessPoolExecutor(max_workers=workers) as pool:
+            results = pool.map(_parse_job, rows, chunksize=4)
+            for k, (b_id, dt, records, err) in enumerate(results, 1):
+                total_records += store_bulletin_records(b_id, dt, records, conn, err)
+                if k % 100 == 0 or err:
+                    print(f"[{k}/{len(rows)}] {dt}: {len(records)} rows" + (f" FAILED {err}" if err else ""), flush=True)
+    else:
+        for b_id, path, dt in rows:
+            n = parse_and_store_bulletin(b_id, path, dt, conn)
+            total_records += n
+            print(f"Parsed {dt}: {n} price observations stored.")
 
     conn.close()
-    print(f"\nBatch parsing complete: {parsed_files} files parsed, {total_records} price rows stored.")
+    print(f"\nBatch parsing complete: {len(rows)} files processed, {total_records} price rows stored.")
+
 
 if __name__ == "__main__":
-    run_parser_batch()
+    import argparse
+    ap = argparse.ArgumentParser(description="Parse downloaded HARTI bulletins into prices.db")
+    ap.add_argument("--workers", type=int, default=1)
+    ap.add_argument("--limit", type=int, default=None)
+    ap.add_argument("--reparse", action="store_true", help="also re-parse bulletins already PARSED")
+    a = ap.parse_args()
+    run_parser_batch(limit=a.limit, workers=a.workers, reparse=a.reparse)
