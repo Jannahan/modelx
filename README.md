@@ -2,6 +2,21 @@
 
 Uncertainty-aware vegetable price forecasting and trade-decision engine.
 
+## Interactive Web Application (Frontend + Backend)
+
+Launch the interactive Streamlit web application:
+
+```bash
+streamlit run app.py
+```
+
+Features included:
+1. **📱 Trader Morning Assistant:** Real-time 06:00 AM dawn signal screen (Figure 2 wireframe replica) showing Green, Amber, and Red decision cards with loan interest and transport break-even calculators. Hides point forecasts on RED to prevent anchoring.
+2. **📊 Real Market Explorer:** Live query interface into SQLite `data/prices.db` showing actual wholesale price series from official HARTI bulletins.
+3. **📈 Conformal Calibration & ACI:** Visualizes how Adaptive Conformal Inference maintains honest 90% coverage through the 2022 macroeconomic shock.
+4. **🛡️ Backtest & Catastrophic Loss Prevention:** Full multi-year financial performance comparisons against "Always Trade" and "Yesterday's Spread" benchmarks.
+5. **📑 Competition Dossier:** Full system architecture, domain details, and links to project blueprints.
+
 ## Data Engineering modules (M1–M2) — Tharusha
 
 | File | Module | What it does |
