@@ -10,6 +10,8 @@ def decide(L, M, U, B, m_bar, beta=3.0, breakdown=False, stale=False):
         return "RED", "Price bulletin missing or out of date", False
     if breakdown:
         return "RED", "Dambulla -> Colombo price link has broken down", False
+    if m_bar <= 0:
+        return "RED", "This route has lost money on average over the last 90 days", False
     if U - L > beta * m_bar:
         return "RED", "Forecast too uncertain to trust", False
     if M < B:

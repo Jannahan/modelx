@@ -1,41 +1,44 @@
 {
   "commodity": "SYNTHETIC",
   "data": "synthetic (data/fake_market.csv)",
-  "period": [
+  "tune_period": [
     "2019-12-30",
+    "2019-12-31"
+  ],
+  "period": [
+    "2020-01-01",
     "2026-10-30"
   ],
-  "eval_days": 2497,
+  "eval_days": 2495,
   "pinball": {
-    "0.05": 1.477268769120979,
-    "0.5": 4.288659515996586,
-    "0.95": 1.626896347394062
+    "0.05": 1.4761136438106721,
+    "0.5": 4.287869243617278,
+    "0.95": 1.6275785423707707
   },
   "intervals": {
     "Naive (90-day ratio)": {
-      "coverage": 0.8646375650780938,
-      "width_pct": 19.05544014172664
+      "coverage": 0.8649298597194389,
+      "width_pct": 19.06146285280588
     },
     "ARIMA(1,1,1)": {
-      "coverage": 0.893872647176612,
-      "width_pct": 29.273993845516788
+      "coverage": 0.8937875751503006,
+      "width_pct": 29.280473142493772
     },
     "Raw LightGBM": {
-      "coverage": 0.7348818582298758,
-      "width_pct": 12.977889991046698
+      "coverage": 0.7350701402805612,
+      "width_pct": 12.981733379880101
     },
     "Rolling CQR (gamma=0)": {
-      "coverage": 0.8962755306367641,
-      "width_pct": 23.031914830775424
+      "coverage": 0.8965931863727455,
+      "width_pct": 23.040153289740772
     },
     "CQR + ACI (gamma=0.02)": {
-      "coverage": 0.9006808169803765,
-      "width_pct": 24.800334153084584
+      "coverage": 0.901002004008016,
+      "width_pct": 24.809709363536196
     }
   },
   "coverage_by_year": {
     "Naive (90-day ratio)": {
-      "2019": 0.5,
       "2020": 0.809,
       "2021": 0.901,
       "2022": 0.797,
@@ -45,7 +48,6 @@
       "2026": 0.908
     },
     "ARIMA(1,1,1)": {
-      "2019": 1.0,
       "2020": 0.883,
       "2021": 0.942,
       "2022": 0.745,
@@ -55,7 +57,6 @@
       "2026": 0.914
     },
     "Raw LightGBM": {
-      "2019": 0.5,
       "2020": 0.645,
       "2021": 0.734,
       "2022": 0.655,
@@ -65,7 +66,6 @@
       "2026": 0.822
     },
     "Rolling CQR (gamma=0)": {
-      "2019": 0.5,
       "2020": 0.847,
       "2021": 0.915,
       "2022": 0.868,
@@ -75,7 +75,6 @@
       "2026": 0.924
     },
     "CQR + ACI (gamma=0.02)": {
-      "2019": 0.5,
       "2020": 0.899,
       "2021": 0.904,
       "2022": 0.899,
@@ -85,26 +84,196 @@
       "2026": 0.908
     }
   },
+  "decision": {
+    "plan": {
+      "thresholds": {
+        "beta": 3.0,
+        "z_limit": 2.5,
+        "corr_limit": 0.35
+      },
+      "pnl": {
+        "Always Trade": {
+          "total_pnl": 4388670.996857226,
+          "days_traded": 2495,
+          "losing_days": 103,
+          "catastrophic": 11,
+          "catastrophic_rs": -62804.54438154653,
+          "worst_day": -6536.835712797767
+        },
+        "Yesterday's Spread": {
+          "total_pnl": 4231537.726133294,
+          "days_traded": 2327,
+          "losing_days": 69,
+          "catastrophic": 0,
+          "catastrophic_rs": 0.0,
+          "worst_day": -3489.517760425751
+        },
+        "Model Y": {
+          "total_pnl": 3229048.1959337927,
+          "days_traded": 2009,
+          "losing_days": 49,
+          "catastrophic": 0,
+          "catastrophic_rs": 0.0,
+          "worst_day": -1744.7588802128755
+        }
+      },
+      "signals": {
+        "GREEN": 1698,
+        "RED": 486,
+        "AMBER": 311
+      },
+      "refusal_justification_rate": 0.1111111111111111,
+      "loss_rate_on_traded_days": 0.024390243902439025,
+      "base_loss_rate": 0.04128256513026052,
+      "breakdown_rate": 0.1154308617234469,
+      "red_reasons": {
+        "Dambulla -> Colombo price link has broken down": 288,
+        "Forecast too uncertain to trust": 193,
+        "Expected price is below your break-even": 5
+      },
+      "signals_by_year": {
+        "2020": {
+          "AMBER": 18,
+          "GREEN": 198,
+          "RED": 150
+        },
+        "2021": {
+          "AMBER": 34,
+          "GREEN": 307,
+          "RED": 24
+        },
+        "2022": {
+          "AMBER": 162,
+          "GREEN": 14,
+          "RED": 189
+        },
+        "2023": {
+          "AMBER": 28,
+          "GREEN": 308,
+          "RED": 29
+        },
+        "2024": {
+          "AMBER": 10,
+          "GREEN": 324,
+          "RED": 32
+        },
+        "2025": {
+          "AMBER": 42,
+          "GREEN": 299,
+          "RED": 24
+        },
+        "2026": {
+          "AMBER": 17,
+          "GREEN": 248,
+          "RED": 38
+        }
+      }
+    },
+    "tuned": {
+      "thresholds": {
+        "beta": 3.0,
+        "z_limit": 2.5,
+        "corr_limit": 0.35
+      },
+      "pnl": {
+        "Always Trade": {
+          "total_pnl": 4388670.996857226,
+          "days_traded": 2495,
+          "losing_days": 103,
+          "catastrophic": 11,
+          "catastrophic_rs": -62804.54438154653,
+          "worst_day": -6536.835712797767
+        },
+        "Yesterday's Spread": {
+          "total_pnl": 4231537.726133294,
+          "days_traded": 2327,
+          "losing_days": 69,
+          "catastrophic": 0,
+          "catastrophic_rs": 0.0,
+          "worst_day": -3489.517760425751
+        },
+        "Model Y": {
+          "total_pnl": 3229048.1959337927,
+          "days_traded": 2009,
+          "losing_days": 49,
+          "catastrophic": 0,
+          "catastrophic_rs": 0.0,
+          "worst_day": -1744.7588802128755
+        }
+      },
+      "signals": {
+        "GREEN": 1698,
+        "RED": 486,
+        "AMBER": 311
+      },
+      "refusal_justification_rate": 0.1111111111111111,
+      "loss_rate_on_traded_days": 0.024390243902439025,
+      "base_loss_rate": 0.04128256513026052,
+      "breakdown_rate": 0.1154308617234469,
+      "red_reasons": {
+        "Dambulla -> Colombo price link has broken down": 288,
+        "Forecast too uncertain to trust": 193,
+        "Expected price is below your break-even": 5
+      },
+      "signals_by_year": {
+        "2020": {
+          "AMBER": 18,
+          "GREEN": 198,
+          "RED": 150
+        },
+        "2021": {
+          "AMBER": 34,
+          "GREEN": 307,
+          "RED": 24
+        },
+        "2022": {
+          "AMBER": 162,
+          "GREEN": 14,
+          "RED": 189
+        },
+        "2023": {
+          "AMBER": 28,
+          "GREEN": 308,
+          "RED": 29
+        },
+        "2024": {
+          "AMBER": 10,
+          "GREEN": 324,
+          "RED": 32
+        },
+        "2025": {
+          "AMBER": 42,
+          "GREEN": 299,
+          "RED": 24
+        },
+        "2026": {
+          "AMBER": 17,
+          "GREEN": 248,
+          "RED": 38
+        }
+      }
+    }
+  },
   "pnl": {
     "Always Trade": {
-      "total_pnl": 4390901.147065602,
-      "days_traded": 2497,
+      "total_pnl": 4388670.996857226,
+      "days_traded": 2495,
       "losing_days": 103,
       "catastrophic": 11,
       "catastrophic_rs": -62804.54438154653,
       "worst_day": -6536.835712797767
     },
     "Yesterday's Spread": {
-      "total_pnl": 4234874.188505657,
-      "days_traded": 2329,
+      "total_pnl": 4231537.726133294,
+      "days_traded": 2327,
       "losing_days": 69,
       "catastrophic": 0,
       "catastrophic_rs": 0.0,
       "worst_day": -3489.517760425751
     },
     "Model Y": {
-      "total_pnl": 3231278.346142169,
-      "days_traded": 2011,
+      "total_pnl": 3229048.1959337927,
+      "days_traded": 2009,
       "losing_days": 49,
       "catastrophic": 0,
       "catastrophic_rs": 0.0,
@@ -112,16 +281,11 @@
     }
   },
   "signals": {
-    "GREEN": 1700,
+    "GREEN": 1698,
     "RED": 486,
     "AMBER": 311
   },
   "signals_by_year": {
-    "2019": {
-      "AMBER": 0,
-      "GREEN": 2,
-      "RED": 0
-    },
     "2020": {
       "AMBER": 18,
       "GREEN": 198,
@@ -159,13 +323,16 @@
     }
   },
   "refusal_justification_rate": 0.1111111111111111,
-  "base_loss_rate": 0.04124949939927913,
+  "base_loss_rate": 0.04128256513026052,
   "params": {
     "r": 0.003,
     "C": 6.0,
     "quota_kg": 100,
     "alpha": 0.1,
-    "gamma": 0.02
+    "gamma": 0.02,
+    "beta": 3.0,
+    "z_limit": 2.5,
+    "corr_limit": 0.35
   },
   "today": {
     "date": "2026-10-31",
@@ -176,6 +343,9 @@
     "U": 202.76352991029628,
     "signal": "GREEN",
     "reason": "Even a bad day (5th percentile) covers loan + transport",
-    "breakdown": false
+    "m_bar": 25.383885659029122,
+    "stale": false,
+    "breakdown": false,
+    "beta": 3.0
   }
 }
