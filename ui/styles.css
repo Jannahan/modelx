@@ -343,5 +343,10 @@ tr.ours td { font-weight: 800; }
   .sheet { margin: auto auto 0; width: 100%; max-width: 100%; border-radius: 22px 22px 0 0; background: #0E1912; }
   .pop { right: -4px; }
 }
+@media (min-width: 600px) and (max-width: 899px) {
+  .page { max-width: 860px; margin: 0 auto; }
+  .cards { grid-template-columns: 1fr 1fr; }
+  .market-grid { grid-template-columns: 1fr 1fr; }
+}
 @media (max-width: 360px) { .strip b { font-size: 15px; } .brand-name { font-size: 19px; } }
 @media (prefers-reduced-motion: reduce) { .sheet[open] { animation: none; } .ring .arc { transition: none; } }
