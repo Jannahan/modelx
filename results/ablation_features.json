@@ -1,0 +1,117 @@
+{
+  "BEANS": {
+    "all features": {
+      "coverage": 0.900050735667174,
+      "width_pct": 65.02669148794283,
+      "pinball_median": 23.56888524172329,
+      "mae_median": 47.13777048344658,
+      "raw_coverage": 0.7813292744799594
+    },
+    "without rainfall": {
+      "coverage": 0.900050735667174,
+      "width_pct": 64.54710812581837,
+      "pinball_median": 23.820188020072887,
+      "mae_median": 47.640376040145775,
+      "raw_coverage": 0.7813292744799594
+    },
+    "without calendar, fuel, FX, lags 2/14": {
+      "coverage": 0.900050735667174,
+      "width_pct": 65.62749057006738,
+      "pinball_median": 23.982354575150442,
+      "mae_median": 47.964709150300884,
+      "raw_coverage": 0.7853881278538812
+    }
+  },
+  "CARROT": {
+    "all features": {
+      "coverage": 0.8985286656519533,
+      "width_pct": 56.337280398311506,
+      "pinball_median": 16.45831433967648,
+      "mae_median": 32.91662867935296,
+      "raw_coverage": 0.776255707762557
+    },
+    "without rainfall": {
+      "coverage": 0.900050735667174,
+      "width_pct": 55.295233893271146,
+      "pinball_median": 16.507604568397756,
+      "mae_median": 33.01520913679551,
+      "raw_coverage": 0.778285134449518
+    },
+    "without calendar, fuel, FX, lags 2/14": {
+      "coverage": 0.8990360223236935,
+      "width_pct": 56.895627586699845,
+      "pinball_median": 16.468752387332085,
+      "mae_median": 32.93750477466417,
+      "raw_coverage": 0.7747336377473364
+    }
+  },
+  "TOMATO": {
+    "all features": {
+      "coverage": 0.9020801623541349,
+      "width_pct": 59.09401938774147,
+      "pinball_median": 14.258736846720419,
+      "mae_median": 28.517473693440838,
+      "raw_coverage": 0.7828513444951801
+    },
+    "without rainfall": {
+      "coverage": 0.9020801623541349,
+      "width_pct": 60.98557239106742,
+      "pinball_median": 14.404260269185501,
+      "mae_median": 28.808520538371003,
+      "raw_coverage": 0.7767630644342973
+    },
+    "without calendar, fuel, FX, lags 2/14": {
+      "coverage": 0.9015728056823947,
+      "width_pct": 62.06508544529,
+      "pinball_median": 14.6480514313007,
+      "mae_median": 29.2961028626014,
+      "raw_coverage": 0.7813292744799594
+    }
+  },
+  "LEEKS": {
+    "all features": {
+      "coverage": 0.8995433789954338,
+      "width_pct": 61.74341269041847,
+      "pinball_median": 12.269996472896834,
+      "mae_median": 24.539992945793667,
+      "raw_coverage": 0.7569761542364282
+    },
+    "without rainfall": {
+      "coverage": 0.8995433789954338,
+      "width_pct": 62.842952107018,
+      "pinball_median": 12.214170544510731,
+      "mae_median": 24.428341089021462,
+      "raw_coverage": 0.7574835109081685
+    },
+    "without calendar, fuel, FX, lags 2/14": {
+      "coverage": 0.8995433789954338,
+      "width_pct": 64.18013476833589,
+      "pinball_median": 12.409965302118259,
+      "mae_median": 24.819930604236518,
+      "raw_coverage": 0.76103500761035
+    }
+  },
+  "GREEN_CHILLI": {
+    "all features": {
+      "coverage": 0.8995433789954338,
+      "width_pct": 71.65344685780553,
+      "pinball_median": 27.231970551047084,
+      "mae_median": 54.46394110209417,
+      "raw_coverage": 0.7701674277016742
+    },
+    "without rainfall": {
+      "coverage": 0.8990360223236935,
+      "width_pct": 71.81663937835128,
+      "pinball_median": 27.231595711633197,
+      "mae_median": 54.463191423266395,
+      "raw_coverage": 0.7798072044647387
+    },
+    "without calendar, fuel, FX, lags 2/14": {
+      "coverage": 0.8995433789954338,
+      "width_pct": 71.47657763481944,
+      "pinball_median": 28.596738914389917,
+      "mae_median": 57.193477828779834,
+      "raw_coverage": 0.7803145611364789
+    }
+  }
+}

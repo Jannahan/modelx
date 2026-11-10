@@ -11,9 +11,9 @@
   ],
   "eval_days": 1971,
   "pinball": {
-    "0.05": 3.478136044287384,
-    "0.5": 12.409965302118259,
-    "0.95": 5.22555770462872
+    "0.05": 3.4387986752826225,
+    "0.5": 12.269996472896834,
+    "0.95": 5.05578747121691
   },
   "intervals": {
     "Naive (90-day ratio)": {
@@ -25,16 +25,16 @@
       "width_pct": 67.56068311019077
     },
     "Raw LightGBM": {
-      "coverage": 0.76103500761035,
-      "width_pct": 42.05562572515193
+      "coverage": 0.7569761542364282,
+      "width_pct": 42.1675812510956
     },
     "Rolling CQR (gamma=0)": {
-      "coverage": 0.9020801623541349,
-      "width_pct": 63.26186363143444
+      "coverage": 0.898021308980213,
+      "width_pct": 61.49244320426055
     },
     "CQR + ACI (gamma=0.02)": {
       "coverage": 0.8995433789954338,
-      "width_pct": 64.18013476833589
+      "width_pct": 61.74341269041847
     }
   },
   "coverage_by_year": {
@@ -57,31 +57,31 @@
       "2026": 0.939
     },
     "Raw LightGBM": {
-      "2020": 0.76,
-      "2021": 0.693,
-      "2022": 0.792,
-      "2023": 0.798,
-      "2024": 0.725,
-      "2025": 0.734,
-      "2026": 0.807
+      "2020": 0.767,
+      "2021": 0.707,
+      "2022": 0.804,
+      "2023": 0.807,
+      "2024": 0.716,
+      "2025": 0.704,
+      "2026": 0.786
     },
     "Rolling CQR (gamma=0)": {
       "2020": 0.918,
-      "2021": 0.883,
-      "2022": 0.924,
-      "2023": 0.893,
-      "2024": 0.901,
-      "2025": 0.901,
+      "2021": 0.863,
+      "2022": 0.908,
+      "2023": 0.89,
+      "2024": 0.909,
+      "2025": 0.898,
       "2026": 0.896
     },
     "CQR + ACI (gamma=0.02)": {
-      "2020": 0.918,
-      "2021": 0.893,
-      "2022": 0.911,
-      "2023": 0.89,
-      "2024": 0.904,
-      "2025": 0.892,
-      "2026": 0.896
+      "2020": 0.911,
+      "2021": 0.898,
+      "2022": 0.902,
+      "2023": 0.896,
+      "2024": 0.906,
+      "2025": 0.895,
+      "2026": 0.893
     }
   },
   "decision": {
@@ -127,9 +127,9 @@
       "red_reasons": {
         "Dambulla -> Colombo price link has broken down": 1215,
         "This route has lost money on average over the last 90 days": 457,
-        "Forecast too uncertain to trust": 278,
+        "Forecast too uncertain to trust": 279,
         "Price bulletin missing or out of date": 19,
-        "Expected price is below your break-even": 2
+        "Expected price is below your break-even": 1
       },
       "signals_by_year": {
         "2020": {
@@ -179,61 +179,61 @@
           "worst_day": -68385.0
         },
         "Model Y": {
-          "total_pnl": 101495.0,
-          "days_traded": 176,
-          "losing_days": 62,
-          "catastrophic": 2,
-          "catastrophic_rs": -6660.0,
-          "worst_day": -4086.0
+          "total_pnl": 102887.625,
+          "days_traded": 183,
+          "losing_days": 72,
+          "catastrophic": 0,
+          "catastrophic_rs": 0.0,
+          "worst_day": -3086.0
         }
       },
       "signals": {
-        "RED": 1795,
-        "AMBER": 176
+        "RED": 1788,
+        "AMBER": 183
       },
-      "refusal_justification_rate": 0.6724233983286908,
-      "loss_rate_on_traded_days": 0.3522727272727273,
+      "refusal_justification_rate": 0.6694630872483222,
+      "loss_rate_on_traded_days": 0.39344262295081966,
       "base_loss_rate": 0.6438356164383562,
       "breakdown_rate": 0.0,
       "red_reasons": {
         "This route has lost money on average over the last 90 days": 1296,
-        "Expected price is below your break-even": 480,
+        "Expected price is below your break-even": 473,
         "Price bulletin missing or out of date": 19
       },
       "signals_by_year": {
         "2020": {
-          "AMBER": 2,
-          "RED": 144
+          "AMBER": 3,
+          "RED": 143
         },
         "2021": {
-          "AMBER": 38,
-          "RED": 167
+          "AMBER": 43,
+          "RED": 162
         },
         "2022": {
-          "AMBER": 71,
-          "RED": 256
+          "AMBER": 58,
+          "RED": 269
         },
         "2023": {
-          "AMBER": 11,
-          "RED": 326
+          "AMBER": 19,
+          "RED": 318
         },
         "2024": {
-          "AMBER": 11,
-          "RED": 331
+          "AMBER": 14,
+          "RED": 328
         },
         "2025": {
-          "AMBER": 14,
-          "RED": 320
+          "AMBER": 13,
+          "RED": 321
         },
         "2026": {
-          "AMBER": 29,
-          "RED": 251
+          "AMBER": 33,
+          "RED": 247
         }
       }
     }
   },
   "point_accuracy_mae": {
-    "LightGBM median": 24.819930604236518,
+    "LightGBM median": 24.539992945793667,
     "Naive (last Colombo price)": 28.34094368340944,
     "Seasonal naive (same day last week)": 35.12049720953831
   },
@@ -242,25 +242,25 @@
       "r": 0.0,
       "always_loss_rate": 0.6438356164383562,
       "always_pnl": -1584100.0,
-      "model_y_pnl": 107850.0,
-      "model_y_days": 183,
+      "model_y_pnl": 112025.0,
+      "model_y_days": 187,
       "always_catastrophic": 116,
-      "model_y_catastrophic": 3
+      "model_y_catastrophic": 0
     },
     {
       "r": 0.003,
       "always_loss_rate": 0.6438356164383562,
       "always_pnl": -1692691.75,
-      "model_y_pnl": 101495.0,
-      "model_y_days": 176,
+      "model_y_pnl": 102887.625,
+      "model_y_days": 183,
       "always_catastrophic": 121,
-      "model_y_catastrophic": 2
+      "model_y_catastrophic": 0
     },
     {
       "r": 0.01,
       "always_loss_rate": 0.6438356164383562,
       "always_pnl": -1946072.5,
-      "model_y_pnl": 93692.5,
+      "model_y_pnl": 83590.0,
       "model_y_days": 161,
       "always_catastrophic": 129,
       "model_y_catastrophic": 1
@@ -269,17 +269,17 @@
       "r": 0.02,
       "always_loss_rate": 0.6610857432775241,
       "always_pnl": -2308045.0,
-      "model_y_pnl": 79612.5,
-      "model_y_days": 146,
+      "model_y_pnl": 63525.0,
+      "model_y_days": 139,
       "always_catastrophic": 136,
-      "model_y_catastrophic": 0
+      "model_y_catastrophic": 1
     },
     {
       "r": 0.03,
       "always_loss_rate": 0.6960933536276002,
       "always_pnl": -2670017.5,
-      "model_y_pnl": 71956.25,
-      "model_y_days": 128,
+      "model_y_pnl": 42480.0,
+      "model_y_days": 112,
       "always_catastrophic": 150,
       "model_y_catastrophic": 0
     },
@@ -287,8 +287,8 @@
       "r": 0.05,
       "always_loss_rate": 0.7214611872146118,
       "always_pnl": -3393962.5,
-      "model_y_pnl": 42656.25,
-      "model_y_days": 95,
+      "model_y_pnl": 19018.75,
+      "model_y_days": 85,
       "always_catastrophic": 182,
       "model_y_catastrophic": 1
     },
@@ -296,29 +296,69 @@
       "r": 0.1,
       "always_loss_rate": 0.802130898021309,
       "always_pnl": -5203825.0,
-      "model_y_pnl": 2362.5,
-      "model_y_days": 36,
+      "model_y_pnl": 4962.5,
+      "model_y_days": 37,
       "always_catastrophic": 257,
       "model_y_catastrophic": 2
     }
   ],
   "break_even_interest_rate": 0.0,
   "refusal_cost": {
-    "red_days": 1795,
-    "red_days_profitable_share": 0.3275766016713092,
-    "profit_forgone_rs": 1657095.5,
-    "losses_avoided_rs": 3552777.25
+    "red_days": 1788,
+    "red_days_profitable_share": 0.33053691275167785,
+    "profit_forgone_rs": 1650169.5,
+    "losses_avoided_rs": 3548636.5
   },
   "breakdown_warning": {
     "base_flag_rate": 0.6019345238095238,
     "shocks": {
       "2020 COVID lockdown": {
         "flag_rate_30d_before": 0.1875,
-        "first_flag_days_before": 25
+        "lift_vs_usual": 0.311495673671199,
+        "first_flag_days_before": 25,
+        "flagged_bulletins_in_a_row_before": 1
       },
       "2022 fuel crisis": {
         "flag_rate_30d_before": 0.7142857142857143,
-        "first_flag_days_before": 29
+        "lift_vs_usual": 1.1866501854140914,
+        "first_flag_days_before": 29,
+        "flagged_bulletins_in_a_row_before": 5
+      }
+    },
+    "comparison": {
+      "detector": {
+        "base_flag_rate": 0.6019345238095238,
+        "shocks": {
+          "2020 COVID lockdown": {
+            "flag_rate_30d_before": 0.1875,
+            "lift_vs_usual": 0.311495673671199,
+            "first_flag_days_before": 25,
+            "flagged_bulletins_in_a_row_before": 1
+          },
+          "2022 fuel crisis": {
+            "flag_rate_30d_before": 0.7142857142857143,
+            "lift_vs_usual": 1.1866501854140914,
+            "first_flag_days_before": 29,
+            "flagged_bulletins_in_a_row_before": 5
+          }
+        }
+      },
+      "correlation only": {
+        "base_flag_rate": 0.5327380952380952,
+        "shocks": {
+          "2020 COVID lockdown": {
+            "flag_rate_30d_before": 0.0625,
+            "lift_vs_usual": 0.11731843575418995,
+            "first_flag_days_before": 7,
+            "flagged_bulletins_in_a_row_before": 1
+          },
+          "2022 fuel crisis": {
+            "flag_rate_30d_before": 0.6785714285714286,
+            "lift_vs_usual": 1.2737430167597765,
+            "first_flag_days_before": 29,
+            "flagged_bulletins_in_a_row_before": 5
+          }
+        }
       }
     }
   },
@@ -341,49 +381,49 @@
       "worst_day": -68385.0
     },
     "Model Y": {
-      "total_pnl": 101495.0,
-      "days_traded": 176,
-      "losing_days": 62,
-      "catastrophic": 2,
-      "catastrophic_rs": -6660.0,
-      "worst_day": -4086.0
+      "total_pnl": 102887.625,
+      "days_traded": 183,
+      "losing_days": 72,
+      "catastrophic": 0,
+      "catastrophic_rs": 0.0,
+      "worst_day": -3086.0
     }
   },
   "signals": {
-    "RED": 1795,
-    "AMBER": 176
+    "RED": 1788,
+    "AMBER": 183
   },
   "signals_by_year": {
     "2020": {
-      "AMBER": 2,
-      "RED": 144
+      "AMBER": 3,
+      "RED": 143
     },
     "2021": {
-      "AMBER": 38,
-      "RED": 167
+      "AMBER": 43,
+      "RED": 162
     },
     "2022": {
-      "AMBER": 71,
-      "RED": 256
+      "AMBER": 58,
+      "RED": 269
     },
     "2023": {
-      "AMBER": 11,
-      "RED": 326
+      "AMBER": 19,
+      "RED": 318
     },
     "2024": {
-      "AMBER": 11,
-      "RED": 331
+      "AMBER": 14,
+      "RED": 328
     },
     "2025": {
-      "AMBER": 14,
-      "RED": 320
+      "AMBER": 13,
+      "RED": 321
     },
     "2026": {
-      "AMBER": 29,
-      "RED": 251
+      "AMBER": 33,
+      "RED": 247
     }
   },
-  "refusal_justification_rate": 0.6724233983286908,
+  "refusal_justification_rate": 0.6694630872483222,
   "base_loss_rate": 0.6438356164383562,
   "params": {
     "r": 0.003,
@@ -399,9 +439,9 @@
     "date": "2026-11-09",
     "wholesale": 265.0,
     "break_even": 271.79499999999996,
-    "L": 147.9008517273721,
-    "M": 289.247704972736,
-    "U": 380.17808110724906,
+    "L": 170.88488892979072,
+    "M": 277.29054427164573,
+    "U": 360.57404039013767,
     "signal": "RED",
     "reason": "This route has lost money on average over the last 90 days",
     "m_bar": -1.0555555555555556,

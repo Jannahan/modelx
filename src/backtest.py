@@ -65,7 +65,7 @@ def bd_col(z, c):
 # ------------------------------------------------------------------------------------------
 # 1. Forecasts (expensive, run once per crop)
 # ------------------------------------------------------------------------------------------
-def forecast(commodity="BEANS", synthetic=False, use_weather=True, with_arima=True):
+def forecast(commodity="BEANS", synthetic=False, use_weather=True, with_arima=True, use_extra=True):
     df = load(commodity, synthetic).sort_values("date").reset_index(drop=True)
     w, r = df.wholesale, df.retail
 
@@ -77,9 +77,19 @@ def forecast(commodity="BEANS", synthetic=False, use_weather=True, with_arima=Tr
         "dow": df.date.dt.dayofweek,
         "gap_days": df.date.diff().dt.days,     # long gaps = holidays / closures
     })
+    if use_extra:                               # proposal section 6: lags 2 and 14 as well
+        X["r2_w"] = r.shift(2) / w
+        X["r14_w"] = r.shift(14) / w
+        X["w7_w"] = w.shift(7) / w
     if use_weather and not synthetic:           # rain in growing areas, ending yesterday
         from weather import rain_features
         X = pd.concat([X, rain_features(df.date)], axis=1)
+    if use_extra and not synthetic:             # calendar (known ahead) + diesel and USD/LKR changes
+        from macro import calendar_features, cost_features
+        cal = calendar_features(df.date)
+        cost = cost_features(df.date)
+        X = pd.concat([X, cal, cost[["diesel_change_30d", "fx_change_30d"]]], axis=1)
+        X["diesel_per_kg_price"] = cost["diesel"] / w      # fuel cost relative to the crop's price
     df["sell_price"] = r.shift(-1)              # P^r_{t+1}: what we forecast
     y_ratio = df.sell_price / w
     df["m_bar"] = (r - w.shift(1)).rolling(90, min_periods=30).mean().shift(1)
@@ -231,15 +241,33 @@ def extra_measures(res, ev, tuned):
                            "red_days_profitable_share": float((profit[red] > 0).mean()) if red.any() else None,
                            "profit_forgone_rs": float(profit[red].clip(lower=0).sum()),
                            "losses_avoided_rs": float(-profit[red].clip(upper=0).sum())}
-    # Breakdown warning before known shocks (detector at plan settings)
-    base = float(res.bd_plan.mean())
-    warn = {}
-    for name, d in SHOCKS.items():
-        pre = res[(res.date < d) & (res.date >= pd.Timestamp(d) - pd.Timedelta(days=30))]
-        flagged = pre[pre.bd_plan]
-        warn[name] = {"flag_rate_30d_before": float(pre.bd_plan.mean()) if len(pre) else None,
-                      "first_flag_days_before": int((pd.Timestamp(d) - flagged.date.min()).days) if len(flagged) else None}
-    out["breakdown_warning"] = {"base_flag_rate": base, "shocks": warn}
+    # Breakdown warning before known shocks: full detector (residual + correlation, plan settings)
+    # against rolling correlation alone (proposal Table 4)
+    detectors = {"detector": "bd_plan", "correlation only": bd_col(1e9, PLAN["corr_limit"])}
+    bw = {}
+    for label, col in detectors.items():
+        if col not in res:
+            continue
+        flags = res[col].astype(bool)
+        base = float(flags.mean())
+        warn = {}
+        for name, d in SHOCKS.items():
+            d = pd.Timestamp(d)
+            pre = res[(res.date < d) & (res.date >= d - pd.Timedelta(days=30))]
+            pf = flags[pre.index]
+            # days of warning: length of the unbroken flagged run that is still on just before the shock
+            run = 0
+            for v in pf.iloc[::-1]:
+                if not v:
+                    break
+                run += 1
+            first = pre.date[pf].min() if pf.any() else None
+            warn[name] = {"flag_rate_30d_before": float(pf.mean()) if len(pre) else None,
+                          "lift_vs_usual": float(pf.mean() / base) if len(pre) and base > 0 else None,
+                          "first_flag_days_before": int((d - first).days) if first is not None else None,
+                          "flagged_bulletins_in_a_row_before": run}
+        bw[label] = {"base_flag_rate": base, "shocks": warn}
+    out["breakdown_warning"] = {**bw.get("detector", {}), "comparison": bw}
     # Recent honesty: share of the last 30 real prices inside their range
     last = ev.tail(30)
     out["recent_hit_rate_30d"] = float(((last.y >= last.L) & (last.y <= last.U)).mean())
@@ -352,14 +380,16 @@ if __name__ == "__main__":
             summaries[c] = summarise(all_res[c], c, tuned)
             print_summary(summaries[c])
 
-        # Ablation: same pipeline without the Open-Meteo rainfall features
+        # Feature ablation: drop the rainfall features, or drop the calendar / diesel / FX / extra lags
         from functools import partial
         with ProcessPoolExecutor(max_workers=len(crops)) as pool:
             no_w = dict(zip(crops, pool.map(partial(forecast, use_weather=False, with_arima=False), crops)))
+            no_x = dict(zip(crops, pool.map(partial(forecast, use_extra=False, with_arima=False), crops)))
         ab = {}
         for c in crops:
             rows = {}
-            for label, res in (("with weather", all_res[c]), ("without weather", no_w[c])):
+            for label, res in (("all features", all_res[c]), ("without rainfall", no_w[c]),
+                               ("without calendar, fuel, FX, lags 2/14", no_x[c])):
                 ev = res[(res.date >= TEST_START) & res.y.notna()]
                 rows[label] = {"coverage": float(((ev.y >= ev.L) & (ev.y <= ev.U)).mean()),
                                "width_pct": float(((ev.U - ev.L) / ev.y).mean() * 100),
@@ -367,10 +397,11 @@ if __name__ == "__main__":
                                "mae_median": float((ev.q_med - ev.y).abs().mean()),
                                "raw_coverage": float(((ev.y >= ev.q_lo) & (ev.y <= ev.q_hi)).mean())}
             ab[c] = rows
-        with open(os.path.join(RESULTS, "ablation_weather.json"), "w") as f:
+        with open(os.path.join(RESULTS, "ablation_features.json"), "w") as f:
             json.dump(ab, f, indent=2)
-        print("\nWeather ablation (test period):")
+        old = os.path.join(RESULTS, "ablation_weather.json")
+        if os.path.exists(old):
+            os.remove(old)
+        print("\nFeature ablation (test period): width % | median error Rs. | coverage")
         for c, rows in ab.items():
-            w, n = rows["with weather"], rows["without weather"]
-            print(f"{c:<13} width {w['width_pct']:.1f}% vs {n['width_pct']:.1f}% | MAE {w['mae_median']:.1f} vs "
-                  f"{n['mae_median']:.1f} | coverage {w['coverage']:.3f} vs {n['coverage']:.3f}")
+            print(c, " | ".join(f"{k}: {v['width_pct']:.1f}% / {v['mae_median']:.1f} / {v['coverage']:.3f}" for k, v in rows.items()))
