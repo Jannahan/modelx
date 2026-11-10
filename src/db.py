@@ -116,7 +116,8 @@ def init_db(db_path=DB_PATH):
         ('BANDARAWELA', 'Bandarawela Wholesale Market', 'WHOLESALE_HUB', 'Uva'),
         ('THAMBUTHTHEGAMA', 'Thambuththegama DEC', 'WHOLESALE_HUB', 'North Central'),
         ('VEYANGODA', 'Veyangoda Market', 'REGIONAL', 'Western'),
-        ('NOROCHCHOLE', 'Norochchole Market', 'REGIONAL', 'North Western')
+        ('NOROCHCHOLE', 'Norochchole Market', 'REGIONAL', 'North Western'),
+        ('NARAHENPITA', 'Narahenpita Economic Centre (retail, CBSL)', 'COLOMBO_TERMINAL', 'Western')
     ]
     cur.executemany("""
         INSERT OR IGNORE INTO markets (market_id, market_name, market_type, province)

@@ -8,21 +8,24 @@ Gates:
   2. Extreme jump      |P_t - P_{t-1}| / P_{t-1} > 60%   (flagged for review, never auto-deleted)
   3. Missing trade     dashes stored as NULL, never 0, never forward-filled
   4. Coverage          which bulletins are missing, per year and per corridor
+  5. Dual-source check HARTI vs CBSL prices on matching dates (guide: Pearson r >= 0.90)
 """
 import json, os, sqlite3, sys
 import pandas as pd
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from db import DB_PATH
-from build_real_features import build_corridor_dataset
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CROPS = ("BEANS", "CARROT", "TOMATO", "LEEKS")
+from history import CROPS, load_corridor
+HIST = os.path.join(ROOT, "data", "history")
 
 
 def main():
     conn = sqlite3.connect(DB_PATH)
-    b = pd.read_sql_query("SELECT date, download_status, parse_status, error_message FROM bulletins", conn)
+    b_all = pd.read_sql_query("SELECT date, source, download_status, parse_status, error_message FROM bulletins", conn)
+    b = b_all[b_all.source == "HARTI"].copy()
+    cb = b_all[b_all.source == "CBSL"]
     p = pd.read_sql_query("SELECT * FROM wholesale_prices", conn)
     conn.close()
 
@@ -51,13 +54,32 @@ def main():
 
     corridors = {}
     for c in CROPS:
-        d = build_corridor_dataset(commodity=c)
+        d = load_corridor(c)
         if d.empty:
             continue
         d["year"] = d.date.dt.year
         corridors[c] = {"days": int(len(d)), "first": str(d.date.min().date()), "last": str(d.date.max().date()),
                         "days_per_year": d.groupby("year").size().to_dict(),
                         "max_gap_days": int(d.date.diff().dt.days.max())}
+
+    # 5. HARTI vs CBSL on matching dates
+    cross = {}
+    cp = os.path.join(HIST, "cbsl_prices.csv")
+    if os.path.exists(cp):
+        cbsl = pd.read_csv(cp, parse_dates=["date"]).dropna(subset=["price"])
+        for c in CROPS:
+            h = load_corridor(c)
+            for label, hcol, mkt in (("Dambulla wholesale", "wholesale", "DAMBULLA"),
+                                     ("Colombo wholesale (HARTI) vs Pettah wholesale (CBSL)", "retail", "PETTAH")):
+                s2 = cbsl[(cbsl.commodity == c) & (cbsl.market == mkt) & (cbsl.type == "wholesale")]
+                m = h.merge(s2[["date", "price"]], on="date")
+                if len(m) >= 30:
+                    cross.setdefault(c, {})[label] = {"days": int(len(m)), "pearson_r": round(float(m[hcol].corr(m.price)), 3),
+                                                      "median_abs_diff_pct": round(float(((m[hcol] - m.price).abs() / m.price).median() * 100), 1)}
+    cbsl_counts = {"listed": int(len(cb)), "downloaded": int(cb.download_status.eq("DOWNLOADED").sum()),
+                   "parsed": int(cb.parse_status.eq("PARSED").sum()),
+                   "not_on_server": int(cb.error_message.fillna("").str.contains("404").sum()),
+                   "first": cb.date.min(), "last": cb.date.max()}
 
     report = {
         "bulletins_by_year": bulletins.to_dict(orient="index"),
@@ -71,6 +93,8 @@ def main():
         "gate3_share_no_trade_cells": round(no_trade, 4),
         "colombo_column_label_by_year": colombo_label.to_dict(orient="index"),
         "corridors": corridors,
+        "cbsl": cbsl_counts,
+        "cross_check": cross,
     }
     os.makedirs(os.path.join(ROOT, "results"), exist_ok=True)
     core.to_csv(os.path.join(ROOT, "results", "flagged_jumps.csv"), index=False)
@@ -83,6 +107,10 @@ def main():
     print(f">60% day-on-day jumps: {len(jumps)} total, {len(core)} on the core corridor "
           "(listed in results/flagged_jumps.csv)")
     print("Colombo column label (Beans rows):\n", colombo_label, "\n")
+    print("CBSL reports:", cbsl_counts)
+    for c, v in cross.items():
+        for k, x in v.items():
+            print(f"  cross-check {c:<13} {k:<52} r={x['pearson_r']:.3f}  median diff {x['median_abs_diff_pct']}%  ({x['days']} days)")
     for c, v in corridors.items():
         print(f"{c:<7} {v['days']:>5} days  {v['first']} -> {v['last']}  longest gap {v['max_gap_days']} days")
 

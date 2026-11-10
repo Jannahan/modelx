@@ -136,7 +136,7 @@
   "price_rows": 376152,
   "gate1_inverted_low_high": 0,
   "gate2_jumps_over_60pct_all": 2286,
-  "gate2_jumps_over_60pct_core_corridor": 265,
+  "gate2_jumps_over_60pct_core_corridor": 390,
   "gate3_zero_prices": 0,
   "gate3_share_no_trade_cells": 0.2797,
   "colombo_column_label_by_year": {
@@ -269,6 +269,84 @@
         "2026": 281
       },
       "max_gap_days": 94
+    },
+    "GREEN_CHILLI": {
+      "days": 3019,
+      "first": "2015-06-22",
+      "last": "2026-11-09",
+      "days_per_year": {
+        "2015": 123,
+        "2016": 240,
+        "2017": 218,
+        "2018": 232,
+        "2019": 234,
+        "2020": 146,
+        "2021": 205,
+        "2022": 327,
+        "2023": 337,
+        "2024": 342,
+        "2025": 334,
+        "2026": 281
+      },
+      "max_gap_days": 94
+    }
+  },
+  "cbsl": {
+    "listed": 2420,
+    "downloaded": 2419,
+    "parsed": 2415,
+    "not_on_server": 0,
+    "first": "2016-08-01",
+    "last": "2026-11-10"
+  },
+  "cross_check": {
+    "BEANS": {
+      "Dambulla wholesale": {
+        "days": 2187,
+        "pearson_r": 0.965,
+        "median_abs_diff_pct": 8.3
+      },
+      "Colombo wholesale (HARTI) vs Pettah wholesale (CBSL)": {
+        "days": 2196,
+        "pearson_r": 0.951,
+        "median_abs_diff_pct": 10.5
+      }
+    },
+    "CARROT": {
+      "Dambulla wholesale": {
+        "days": 2178,
+        "pearson_r": 0.981,
+        "median_abs_diff_pct": 8.7
+      },
+      "Colombo wholesale (HARTI) vs Pettah wholesale (CBSL)": {
+        "days": 2196,
+        "pearson_r": 0.97,
+        "median_abs_diff_pct": 10.5
+      }
+    },
+    "TOMATO": {
+      "Dambulla wholesale": {
+        "days": 2190,
+        "pearson_r": 0.988,
+        "median_abs_diff_pct": 7.9
+      },
+      "Colombo wholesale (HARTI) vs Pettah wholesale (CBSL)": {
+        "days": 2196,
+        "pearson_r": 0.972,
+        "median_abs_diff_pct": 10.0
+      }
+    },
+    "GREEN_CHILLI": {
+      "Dambulla wholesale": {
+        "days": 1386,
+        "pearson_r": 0.98,
+        "median_abs_diff_pct": 6.8
+      },
+      "Colombo wholesale (HARTI) vs Pettah wholesale (CBSL)": {
+        "days": 1383,
+        "pearson_r": 0.959,
+        "median_abs_diff_pct": 12.5
+      }
     }
   }
 }
