@@ -2,6 +2,16 @@
 
 Uncertainty-aware vegetable price forecasting and trade-decision engine.
 
+## Data Engineering modules (M1–M2) — Tharusha
+
+| File | Module | What it does |
+|---|---|---|
+| `src/db.py` | M1/M2 | SQLite schema (`data/prices.db`) for bulletins, commodities, markets, and prices |
+| `src/harti_scraper.py` | M1 | Scrapes index (3,141 bulletins, 2015–2026) and batch downloads PDF reports |
+| `src/harti_parser.py` | M1 | PyMuPDF table parser for Page 2 wholesale tables; canonical entity mapping |
+| `src/build_real_features.py` | M2 | Builds Dambulla → Peliyagoda corridor dataset with lags, spreads, and rolling margins |
+| `tests/test_harti.py` | M1 | Unit tests for price range parsing and canonical name resolution |
+
 ## Jude's modules (M4–M6)
 
 | File | Module | What it does |
@@ -53,5 +63,7 @@ python src/backtest.py
 
 ## Status
 
-All results so far use synthetic data. They show the pipeline works,
-not that the method beats the benchmarks. Next step: run on `prices.db`.
+- **M4–M6:** Fully operational and tested on synthetic data.
+- **M1:** Scraper index synced (3,141 daily bulletins across 2015–2026), SQLite database initialized (`data/prices.db`), and table parser verified on recent bulletins with 2,000 real price records populated.
+- **M2:** Corridor feature extraction script (`build_real_features.py`) working and producing clean tabular feature sets (`real_beans_dambulla_peliyagoda.csv`, etc.).
+- **Next step:** Run full historical backfill download (or selected years e.g. 2021–2026) and execute `backtest.py` directly on real prices.
