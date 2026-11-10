@@ -5,7 +5,7 @@
 [![Team](https://img.shields.io/badge/Team-Model%20Y%20%7C%20IIT-blue?style=for-the-badge)](https://iit.ac.lk)
 
 > **Official Competition Deliverables:**  
-> 📄 **[Download Official 2-Page Technical Report (PDF)](./ModelX_Technical_Report_Two_Page_Summary.pdf)**  
+> 📄 **2-Page Technical Report:** being regenerated from the real-data results (coming soon)  
 > 🌐 **Live Web Application:** Launch with `run_web.bat` or `run_desktop.bat`  
 > 💻 **GitHub Repository:** `https://github.com/Jannahan/modelx`
 
@@ -120,7 +120,6 @@ python src/backtest.py         # Run full walk-forward backtest
 
 ```text
 Implementation/modelx/
-├── ModelX_Technical_Report_Two_Page_Summary.pdf   # Official 2-Page Technical Report
 ├── app.py                                        # Streamlit multi-tab analyst web app
 ├── package.json                                  # Desktop app configuration
 ├── requirements.txt                              # Python dependency manifest
