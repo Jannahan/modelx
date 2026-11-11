@@ -6,7 +6,8 @@
 [![Domain](https://img.shields.io/badge/Domain%2001-Cost%20of%20living%20%26%20everyday%20economics-10b981?style=for-the-badge)](https://modelx2.pages.dev)
 [![Daily live run](https://github.com/Jannahan/modelx/actions/workflows/daily.yml/badge.svg)](https://github.com/Jannahan/modelx/actions/workflows/daily.yml)
 
-### 📱 Live app: **https://jannahan.github.io/modelx/ui/**
+### 📱 Live app: **https://jannahan.github.io/modelx/ui/**  
+### 📄 Official Technical Report: **[Download 2-Page Summary (PDF)](./ModelX_Technical_Report_Two_Page_Summary.pdf)**
 
 It updates itself every morning at 06:00 and 10:00 Sri Lanka time from the newest HARTI and CBSL bulletins. On a phone it can be added to the home screen and works offline. It shows a light dashboard on desktop and a dark layout on phones.
 

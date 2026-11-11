@@ -7,5 +7,4 @@ data/*.db-wal
 data/*.db-shm
 data/raw/
 
-# Report PDF is withheld until it is regenerated from real-data results
-ModelX_Technical_Report_Two_Page_Summary.pdf
+
