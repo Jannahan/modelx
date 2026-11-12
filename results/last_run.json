@@ -1,5 +1,5 @@
 {
-  "started": "2026-11-11 17:30",
+  "started": "2026-11-12 13:06",
   "where": "GitHub Actions",
   "steps": {
     "HARTI bulletins": {
@@ -19,7 +19,7 @@
     },
     "Open-Meteo rainfall": {
       "ok": true,
-      "latest": "2026-11-11"
+      "latest": "2026-11-12"
     },
     "USD/LKR": {
       "ok": false,
@@ -37,6 +37,6 @@
       "ok": true
     }
   },
-  "finished": "2026-11-11 17:31",
+  "finished": "2026-11-12 13:07",
   "all_ok": false
 }
