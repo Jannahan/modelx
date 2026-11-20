@@ -1,5 +1,5 @@
 {
-  "started": "2026-11-20 13:10",
+  "started": "2026-11-20 18:55",
   "where": "GitHub Actions",
   "steps": {
     "HARTI bulletins": {
@@ -44,6 +44,6 @@
       "ok": true
     }
   },
-  "finished": "2026-11-20 13:11",
+  "finished": "2026-11-20 18:57",
   "all_ok": false
 }
