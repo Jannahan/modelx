@@ -1,5 +1,5 @@
 {
-  "started": "2026-11-20 18:55",
+  "started": "2026-11-21 13:07",
   "where": "GitHub Actions",
   "steps": {
     "HARTI bulletins": {
@@ -8,8 +8,10 @@
     },
     "CBSL reports": {
       "ok": true,
-      "new_reports": [],
-      "latest": "2026-11-19"
+      "new_reports": [
+        "2026-11-20"
+      ],
+      "latest": "2026-11-20"
     },
     "CBSL fallback": {
       "ok": true,
@@ -21,12 +23,13 @@
         "2026-11-16",
         "2026-11-17",
         "2026-11-18",
-        "2026-11-19"
+        "2026-11-19",
+        "2026-11-20"
       ]
     },
     "Open-Meteo rainfall": {
       "ok": true,
-      "latest": "2026-11-20"
+      "latest": "2026-11-21"
     },
     "USD/LKR": {
       "ok": false,
@@ -44,6 +47,6 @@
       "ok": true
     }
   },
-  "finished": "2026-11-20 18:57",
+  "finished": "2026-11-21 13:08",
   "all_ok": false
 }
